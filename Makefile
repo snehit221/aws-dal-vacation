@@ -9,7 +9,7 @@ build-ui:
 	pnpm --dir ui build
 
 .PHONY: deploy
-deploy:
+deploy: build-ui
 	cd infra && cdktf deploy
 
 .PHONy: destroy
