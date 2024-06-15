@@ -1,6 +1,8 @@
 import * as path from "path";
 import * as fs from "fs";
 
+export const getLambdaDirectory = () => path.resolve(__dirname, "../lambda");
+
 export const getUIBuildDirectoryPath = () =>
   path.resolve(__dirname, "../ui/dist");
 

@@ -1,15 +1,28 @@
 import { Construct } from "constructs";
 import * as path from "path";
 import * as mime from "mime-types";
-import { App, TerraformStack, S3Backend, TerraformOutput } from "cdktf";
+import {
+  App,
+  TerraformStack,
+  S3Backend,
+  TerraformOutput,
+  TerraformAsset,
+  AssetType,
+} from "cdktf";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
-import { getUIBuildDirectoryPath, getUIBuildFilePaths } from "./utils";
+import {
+  getLambdaDirectory,
+  getUIBuildDirectoryPath,
+  getUIBuildFilePaths,
+} from "./utils";
 import { S3BucketPolicy } from "@cdktf/provider-aws/lib/s3-bucket-policy";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { S3Object } from "@cdktf/provider-aws/lib/s3-object";
 import { S3BucketOwnershipControls } from "@cdktf/provider-aws/lib/s3-bucket-ownership-controls";
 import { S3BucketPublicAccessBlock } from "@cdktf/provider-aws/lib/s3-bucket-public-access-block";
+import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
+import { LambdaFunctionUrl } from "@cdktf/provider-aws/lib/lambda-function-url";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -26,11 +39,9 @@ class ServerlessProjectStack extends TerraformStack {
       region: "us-east-1",
     });
 
-    const webConfig = this.StaticWebsite();
+    this.StaticWebsite();
 
-    new TerraformOutput(this, "ui-url", {
-      value: `http://${webConfig.websiteEndpoint}`,
-    });
+    this.HelloWorldLambda();
   }
 
   StaticWebsite() {
@@ -43,35 +54,43 @@ class ServerlessProjectStack extends TerraformStack {
       },
     });
 
-    new S3BucketPublicAccessBlock(this, "bucket-public-access", {
-      bucket: bucket.bucket,
-      dependsOn: [bucket],
-      blockPublicAcls: false,
-    });
+    const bucketPublicAccessBlock = new S3BucketPublicAccessBlock(
+      this,
+      "bucket-public-access",
+      {
+        bucket: bucket.bucket,
+        dependsOn: [bucket],
+        blockPublicAcls: false,
+      }
+    );
 
-    new S3BucketOwnershipControls(this, "bucket-ownership", {
-      bucket: bucket.bucket,
-      dependsOn: [bucket],
-      rule: {
-        objectOwnership: "BucketOwnerPreferred",
-      },
-    });
+    const ownershipControls = new S3BucketOwnershipControls(
+      this,
+      "bucket-ownership",
+      {
+        bucket: bucket.bucket,
+        dependsOn: [bucketPublicAccessBlock],
+        rule: {
+          objectOwnership: "BucketOwnerPreferred",
+        },
+      }
+    );
 
     const webConfig = new S3BucketWebsiteConfiguration(
       this,
       "bucket-website-config",
       {
         bucket: bucket.bucket,
-        dependsOn: [bucket],
+        dependsOn: [ownershipControls],
         indexDocument: {
           suffix: "index.html",
         },
       }
     );
 
-    new S3BucketPolicy(this, "bucket-policy", {
+    const bucketPolicy = new S3BucketPolicy(this, "bucket-policy", {
       bucket: bucket.bucket,
-      dependsOn: [bucket],
+      dependsOn: [webConfig],
       policy: JSON.stringify({
         Version: "2012-10-17",
         Statement: [
@@ -90,7 +109,7 @@ class ServerlessProjectStack extends TerraformStack {
 
     for (const file of arrayOfFiles) {
       new S3Object(this, `${path.basename(file)}`, {
-        dependsOn: [bucket],
+        dependsOn: [bucketPolicy],
         key: file.replace(getUIBuildDirectoryPath(), ""),
         bucket: bucket.bucket,
         source: path.resolve(file),
@@ -99,7 +118,35 @@ class ServerlessProjectStack extends TerraformStack {
       });
     }
 
+    new TerraformOutput(this, "ui-url", {
+      value: `http://${webConfig.websiteEndpoint}`,
+    });
+
     return webConfig;
+  }
+
+  HelloWorldLambda() {
+    const asset = new TerraformAsset(this, "hello-world-lambda-asset", {
+      path: path.resolve(getLambdaDirectory(), "hello-world"),
+      type: AssetType.ARCHIVE,
+    });
+
+    const lambda = new LambdaFunction(this, "hello-world-lambda", {
+      functionName: "hello-world",
+      role: "arn:aws:iam::759664679407:role/LabRole",
+      runtime: "nodejs20.x",
+      filename: asset.path,
+      handler: "index.handler",
+    });
+
+    new LambdaFunctionUrl(this, "hellow-world-lambda-url", {
+      authorizationType: "NONE",
+      functionName: lambda.functionName,
+      dependsOn: [lambda],
+      cors: {
+        allowOrigins: ["*"],
+      },
+    });
   }
 }
 
