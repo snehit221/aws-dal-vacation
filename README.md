@@ -13,7 +13,7 @@ make destroy
 
 ### Lambdas
 
-- Write your lambda functions inside dedicated folder `<your-lambda-name>`
+- Write your lambda functions inside dedicated folder `<your-lambda-name>`. Add `index.<any-programming-language>` file inside that folder that contains the logic.
 - Write Deployment CDKTF definition for that lambda. Here is [example](https://git.cs.dal.ca/sarvaiya/serverless-project/-/commit/d2b83d63eda5fd6824df6b41b9f95cea88ada46f)
 
 ### UI
