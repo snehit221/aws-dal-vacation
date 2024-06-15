@@ -40,3 +40,7 @@ cdktf deploy
 ```sh
 cdktf destroy
 ```
+
+## Documentation
+
+Use this documentation to find relevant AWS service and its configuration example - https://github.com/hashicorp/cdktf-aws-cdk/blob/main/docs/API.md
