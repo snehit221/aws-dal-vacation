@@ -12,6 +12,7 @@ import {
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import {
+  LAB_ROLE,
   getLambdaDirectory,
   getUIBuildDirectoryPath,
   getUIBuildFilePaths,
@@ -23,6 +24,12 @@ import { S3BucketOwnershipControls } from "@cdktf/provider-aws/lib/s3-bucket-own
 import { S3BucketPublicAccessBlock } from "@cdktf/provider-aws/lib/s3-bucket-public-access-block";
 import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
 import { LambdaFunctionUrl } from "@cdktf/provider-aws/lib/lambda-function-url";
+import { DynamodbTable } from "@cdktf/provider-aws/lib/dynamodb-table";
+import { LambdaPermission } from "@cdktf/provider-aws/lib/lambda-permission";
+import { Lexv2ModelsBot } from "@cdktf/provider-aws/lib/lexv2models-bot";
+import { Lexv2ModelsIntent } from "@cdktf/provider-aws/lib/lexv2models-intent";
+import { Lexv2ModelsBotLocale } from "@cdktf/provider-aws/lib/lexv2models-bot-locale";
+import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -39,9 +46,95 @@ class ServerlessProjectStack extends TerraformStack {
       region: "us-east-1",
     });
 
-    this.StaticWebsite();
+    this.DynamoDB();
 
-    this.HelloWorldLambda();
+    const { lambda } = this.LexLambda();
+
+    this.Lex(lambda);
+
+    // this.StaticWebsite();
+
+    // this.HelloWorldLambda();
+  }
+
+  Lex(lambda: LambdaFunction) {
+    console.log(lambda.functionName);
+    const bot = new Lexv2ModelsBot(this, "lex-bot", {
+      name: "DalvacationHome",
+      roleArn: LAB_ROLE,
+      idleSessionTtlInSeconds: 300,
+      dataPrivacy: [
+        {
+          childDirected: false,
+        },
+      ],
+    });
+
+    const locale = new Lexv2ModelsBotLocale(this, "lex-bot-locale", {
+      dependsOn: [bot],
+      botId: bot.id,
+      botVersion: "DRAFT",
+      localeId: "en_US",
+      nLuIntentConfidenceThreshold: 0.7,
+    });
+
+    new Lexv2ModelsIntent(this, "lex-navigation-intent", {
+      dependsOn: [bot, locale],
+      botId: bot.id,
+      botVersion: locale.botVersion,
+      localeId: locale.localeId,
+      name: "Navigation",
+      dialogCodeHook: [
+        {
+          enabled: true,
+        },
+      ],
+      sampleUtterance: [
+        {
+          utterance: "How to register?",
+        },
+        {
+          utterance: "How to login?",
+        },
+        {
+          utterance: "How to book room?",
+        },
+        {
+          utterance: "How to raise concern?",
+        },
+      ],
+    });
+  }
+
+  DynamoDB() {
+    const table = new DynamodbTable(this, "dynamodb-bookings", {
+      name: "Bookings",
+      billingMode: "PROVISIONED",
+      readCapacity: 5,
+      writeCapacity: 5,
+      hashKey: "ReferenceCode",
+      attribute: [
+        {
+          name: "ReferenceCode",
+          type: "N",
+        },
+      ],
+    });
+
+    new DynamodbTableItem(this, "dynamodb-bookings-dummy-data", {
+      dependsOn: [table],
+      hashKey: table.hashKey,
+      tableName: table.name,
+      item: JSON.stringify({
+        ReferenceCode: { N: "0" },
+        CheckIn: { N: "1718831379" },
+        CheckOut: { N: "1718831379" },
+        Payment: { N: "100" },
+        Room: {
+          M: { Number: { N: "1" }, Type: { S: "ROOM" }, Id: { S: "room-id" } },
+        },
+      }),
+    });
   }
 
   StaticWebsite() {
@@ -125,6 +218,42 @@ class ServerlessProjectStack extends TerraformStack {
     return webConfig;
   }
 
+  LexLambda() {
+    const asset = new TerraformAsset(this, "lex-lambda-asset", {
+      path: path.resolve(getLambdaDirectory(), "lex"),
+      type: AssetType.ARCHIVE,
+    });
+
+    const lambda = new LambdaFunction(this, "lex-lambda", {
+      functionName: "lex",
+      role: LAB_ROLE,
+      runtime: "nodejs20.x",
+      filename: asset.path,
+      handler: "index.handler",
+      sourceCodeHash: asset.assetHash,
+    });
+
+    new LambdaPermission(this, "lex-lambda-permission", {
+      action: "lambda:InvokeFunction",
+      functionName: lambda.functionName,
+      dependsOn: [lambda],
+      principal: "lex.amazonaws.com",
+    });
+
+    new LambdaFunctionUrl(this, "lex-lambda-url", {
+      authorizationType: "NONE",
+      functionName: lambda.functionName,
+      dependsOn: [lambda],
+      cors: {
+        allowOrigins: ["*"],
+      },
+    });
+
+    return {
+      lambda,
+    };
+  }
+
   HelloWorldLambda() {
     const asset = new TerraformAsset(this, "hello-world-lambda-asset", {
       path: path.resolve(getLambdaDirectory(), "hello-world"),
@@ -133,7 +262,7 @@ class ServerlessProjectStack extends TerraformStack {
 
     const lambda = new LambdaFunction(this, "hello-world-lambda", {
       functionName: "hello-world",
-      role: "arn:aws:iam::759664679407:role/LabRole",
+      role: LAB_ROLE,
       runtime: "nodejs20.x",
       filename: asset.path,
       handler: "index.handler",
