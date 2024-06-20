@@ -30,6 +30,9 @@ import { Lexv2ModelsBot } from "@cdktf/provider-aws/lib/lexv2models-bot";
 import { Lexv2ModelsIntent } from "@cdktf/provider-aws/lib/lexv2models-intent";
 import { Lexv2ModelsBotLocale } from "@cdktf/provider-aws/lib/lexv2models-bot-locale";
 import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
+// import { CloudformationStack } from "@cdktf/provider-aws/lib/cloudformation-stack";
+// import { Lexv2ModelsSlot } from "@cdktf/provider-aws/lib/lexv2models-slot";
+// import { Lexv2ModelsSlotType } from "@cdktf/provider-aws/lib/lexv2models-slot-type";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -91,16 +94,10 @@ class ServerlessProjectStack extends TerraformStack {
       ],
       sampleUtterance: [
         {
-          utterance: "How to register?",
+          utterance: "How to {Destination} ?",
         },
         {
-          utterance: "How to login?",
-        },
-        {
-          utterance: "How to book room?",
-        },
-        {
-          utterance: "How to raise concern?",
+          utterance: "Navigate to {Destination}",
         },
       ],
     });
