@@ -49,12 +49,6 @@ class ServerlessProjectStack extends TerraformStack {
       region: "us-east-1",
     });
 
-    this.DynamoDB();
-
-    const { lambda } = this.LexLambda();
-
-    this.Lex(lambda);
-
     // this.StaticWebsite();
 
     // this.HelloWorldLambda();
