@@ -1,14 +1,27 @@
 import { FaHotel, FaPaypal, FaMap } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
-import { rooms } from "../lib/data";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ax } from "../lib/client";
+import { lambdas } from "../lib/constants";
+import { Room } from "../lib/dto";
+import { Loading } from "../components/loading";
 
 export const RoomView = () => {
   const { roomId } = useParams();
 
-  const room = rooms.find((r) => r.id === roomId);
+  const {
+    data: room,
+    isFetching,
+    isError,
+  } = useQuery({
+    queryKey: ["room", roomId],
+    queryFn: () =>
+      ax.post(lambdas.getRoom, { id: roomId }).then((res) => res.data as Room),
+  });
 
   const [guests, setGuests] = useState(0);
 
@@ -16,6 +29,14 @@ export const RoomView = () => {
   const [endDate, setEndDate] = useState(dayjs().add(7, "day"));
 
   const totalDays = endDate.diff(startDate, "days");
+
+  if (isFetching) {
+    return <Loading />;
+  }
+
+  if (isError) {
+    return <>Error occurred...</>;
+  }
 
   return (
     <>
@@ -62,7 +83,9 @@ export const RoomView = () => {
                 onClick={() =>
                   guests + 1 <= (room?.maxGuests || Infinity)
                     ? setGuests(guests + 1)
-                    : alert(`maximum guests can be ${room?.maxGuests}`)
+                    : toast.error(`maximum guests can be ${room?.maxGuests}`, {
+                        id: "maxguests",
+                      })
                 }
               >
                 +

@@ -1,11 +1,18 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 export const Layout = () => {
+  const navigate = useNavigate();
+
   return (
     <div>
       {/* NAVIGATION */}
       <nav className="p-5 shadow-sm flex items-center">
-        <h1 className="text-xl font-mono font-semibold">DalVacation</h1>
+        <h1
+          className="text-xl font-mono font-semibold"
+          onClick={() => navigate(`/`)}
+        >
+          DalVacation
+        </h1>
         <input placeholder="Search" className="w-1/3 mx-auto" />
         <button type="submit" className="primary">
           Login

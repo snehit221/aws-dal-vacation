@@ -56,7 +56,11 @@ class ServerlessProjectStack extends TerraformStack {
 
     this.DynamoDB();
 
-    this.Lambda("list-rooms");
+    const lambdas = ["list-rooms", "get-room-by-id"];
+
+    for (const lambda of lambdas) {
+      this.Lambda(lambda);
+    }
   }
 
   Lex(lambda: LambdaFunction) {
@@ -314,13 +318,19 @@ class ServerlessProjectStack extends TerraformStack {
       handler: "index.handler",
     });
 
-    new LambdaFunctionUrl(this, `${name}-lambda-url`, {
+    const url = new LambdaFunctionUrl(this, `${name}-lambda-url`, {
       authorizationType: "NONE",
       functionName: lambda.functionName,
       dependsOn: [lambda],
       cors: {
         allowOrigins: ["*"],
+        allowMethods: ["*"],
+        allowHeaders: ["*"],
       },
+    });
+
+    new TerraformOutput(this, `${name}-lambda-url-display`, {
+      value: url.functionUrl,
     });
   }
 }

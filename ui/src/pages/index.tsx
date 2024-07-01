@@ -4,18 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { ax } from "../lib/client";
 import { Room } from "../lib/dto";
 import { Loading } from "../components/loading";
+import { lambdas } from "../lib/constants";
 
 export const Index = () => {
   const navigate = useNavigate();
 
   const { data, isFetching } = useQuery({
     queryKey: ["rooms"],
-    queryFn: () =>
-      ax
-        .get(
-          `https://yrysowdho3adapidj66dxifddu0yaizx.lambda-url.us-east-1.on.aws/`
-        )
-        .then((res) => res.data as Room[]),
+    queryFn: () => ax.get(lambdas.listRooms).then((res) => res.data as Room[]),
   });
 
   if (isFetching) {
