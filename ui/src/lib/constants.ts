@@ -5,4 +5,6 @@ export const lambdas = {
   uploadRoomImage: import.meta.env.VITE_UPLOAD_ROOM_IMAGE_LAMBDA,
   editRoom: import.meta.env.VITE_EDIT_ROOM_LAMBDA,
   deleteRoom: import.meta.env.VITE_DELETE_ROOM_LAMBDA,
+  reserveRoom: import.meta.env.VITE_RESERVE_ROOM_LAMBDA,
+  reservedDatesByRoom: import.meta.env.VITE_RESERVED_DATES_BY_ROOM_LAMBDA,
 };

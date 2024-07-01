@@ -65,6 +65,8 @@ class ServerlessProjectStack extends TerraformStack {
       { name: "add-room" },
       { name: "edit-room" },
       { name: "delete-room" },
+      { name: "reserve-room" },
+      { name: "reserved-dates-by-room" },
       { name: "upload-room-image", dependsOn: [roomsBucket] },
     ];
 

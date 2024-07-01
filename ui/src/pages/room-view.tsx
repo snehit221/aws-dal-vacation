@@ -4,10 +4,10 @@ import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ax } from "../lib/client";
 import { lambdas } from "../lib/constants";
-import { Room } from "../lib/dto";
+import { Reservation, ReservationPayload, Room } from "../lib/dto";
 import { Loading } from "../components/loading";
 
 export const RoomView = () => {
@@ -23,6 +23,17 @@ export const RoomView = () => {
       ax.post(lambdas.getRoom, { id: roomId }).then((res) => res.data as Room),
   });
 
+  const roomReservationsQuery = useQuery({
+    queryKey: ["room", "reservations", roomId],
+    queryFn: () =>
+      ax.get(`${lambdas.reservedDatesByRoom}?roomId=${roomId}`).then(
+        (res) =>
+          res.data as {
+            reservations: Pick<Reservation, "checkIn" | "checkOut">[];
+          }
+      ),
+  });
+
   const [guests, setGuests] = useState(0);
 
   const [startDate, setStartDate] = useState(dayjs());
@@ -30,13 +41,41 @@ export const RoomView = () => {
 
   const totalDays = endDate.diff(startDate, "days");
 
-  if (isFetching) {
+  const reservationMutation = useMutation({
+    mutationFn: (data: ReservationPayload) =>
+      ax
+        .post(`${lambdas.reserveRoom}`, data)
+        .then((res) => res.data as Pick<Reservation, "referenceCode">),
+    onSuccess: (data) =>
+      toast.success(`Your reservation code is ${data.referenceCode}`),
+  });
+
+  if (isFetching || roomReservationsQuery.isFetching) {
     return <Loading />;
   }
 
-  if (isError) {
+  if (isError || !roomId) {
     return <>Error occurred...</>;
   }
+
+  const overlapReservation = (
+    roomReservationsQuery?.data?.reservations || []
+  ).find((reservedDates) => {
+    const reservedCheckIn = dayjs(reservedDates.checkIn);
+    const reservedCheckOut = dayjs(reservedDates.checkOut);
+
+    return (
+      (startDate.isBefore(reservedCheckIn) &&
+        endDate.isAfter(reservedCheckIn)) ||
+      (startDate.isBefore(reservedCheckOut) &&
+        endDate.isAfter(reservedCheckOut)) ||
+      (startDate.isAfter(reservedCheckIn) &&
+        endDate.isBefore(reservedCheckOut)) ||
+      startDate.isSame(reservedCheckIn) ||
+      endDate.isSame(reservedCheckOut) ||
+      startDate.isSame(reservedCheckIn)
+    );
+  });
 
   return (
     <>
@@ -107,6 +146,13 @@ export const RoomView = () => {
                 onChange={(e) => setEndDate(dayjs(e.target.value))}
               />
             </div>
+            {overlapReservation && (
+              <span className="text-sm leading-6 text-red-600 block">
+                Room already reserved from{" "}
+                {dayjs(overlapReservation.checkIn).format("YYYY-MM-DD")} to{" "}
+                {dayjs(overlapReservation.checkOut).format("YYYY-MM-DD")}
+              </span>
+            )}
           </div>
           <div className="mb-5 space-y-2">
             <b>Price: </b>
@@ -114,9 +160,29 @@ export const RoomView = () => {
               ${room?.price} per night, you selected {totalDays} nights
             </span>
           </div>
-          <button type="submit" className="primary flex items-center gap-2">
-            <FaPaypal />
-            Reserve for ${(room?.price || 0) * totalDays}
+          <button
+            disabled={reservationMutation.isPending}
+            type="submit"
+            className="primary flex items-center gap-2"
+            onClick={() =>
+              reservationMutation.mutate({
+                checkIn: startDate.toDate(),
+                checkOut: endDate.toDate(),
+                paid: (room?.price || 0) * totalDays,
+                roomId,
+                // TODO
+                userId: "1",
+                guests,
+              })
+            }
+          >
+            {reservationMutation.isPending && <h2>Reserving...</h2>}
+            {!reservationMutation.isPending && (
+              <>
+                <FaPaypal />
+                Reserve for ${(room?.price || 0) * totalDays}
+              </>
+            )}
           </button>
         </div>
       </section>

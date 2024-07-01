@@ -32,4 +32,10 @@ export type Reservation = {
   checkIn: Date;
   checkOut: Date;
   paid: number;
+  guests: number;
+};
+
+export type ReservationPayload = Omit<Reservation, "referenceCode"> & {
+  userId: string;
+  roomId: string;
 };
