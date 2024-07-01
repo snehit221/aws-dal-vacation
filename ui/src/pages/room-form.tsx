@@ -1,14 +1,17 @@
 import { FaTimes } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { Room, RoomSubType, RoomType } from "../lib/dto";
 import { useMutation } from "@tanstack/react-query";
 import { ax } from "../lib/client";
 import { lambdas } from "../lib/constants";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type RoomForm = Omit<Room, "id">;
 
 export const RoomForm = () => {
+  const navigate = useNavigate();
   const form = useForm<RoomForm>({
     defaultValues: {
       type: RoomType.NORMAL,
@@ -36,7 +39,13 @@ export const RoomForm = () => {
         } else {
           throw new Error("File not uploaded");
         }
+
+        return id;
       }),
+    onSuccess: (id) => {
+      toast.success("Room added successfully");
+      navigate(`/room/${id}`);
+    },
   });
 
   const amenities = form.watch("amenities") || [];

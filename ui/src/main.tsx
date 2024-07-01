@@ -9,6 +9,7 @@ import { Layout } from "./layout";
 import { RoomView } from "./pages/room-view";
 import { RoomForm } from "./pages/room-form";
 import { queryClient } from "./lib/client";
+import { EditRoom } from "./pages/edit-room";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
       {
         path: "/room/add",
         Component: RoomForm,
+      },
+      {
+        path: "/room/:roomId/edit",
+        Component: EditRoom,
       },
     ],
   },

@@ -63,6 +63,8 @@ class ServerlessProjectStack extends TerraformStack {
       { name: "list-rooms" },
       { name: "get-room-by-id" },
       { name: "add-room" },
+      { name: "edit-room" },
+      { name: "delete-room" },
       { name: "upload-room-image", dependsOn: [roomsBucket] },
     ];
 
@@ -179,6 +181,7 @@ class ServerlessProjectStack extends TerraformStack {
       tags: {
         cdktf: "true",
       },
+      forceDestroy: true,
     });
 
     const bucketPublicAccessBlock = new S3BucketPublicAccessBlock(
@@ -231,6 +234,7 @@ class ServerlessProjectStack extends TerraformStack {
       tags: {
         cdktf: "true",
       },
+      forceDestroy: true,
     });
 
     const bucketPublicAccessBlock = new S3BucketPublicAccessBlock(
