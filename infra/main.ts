@@ -24,15 +24,16 @@ import { S3BucketOwnershipControls } from "@cdktf/provider-aws/lib/s3-bucket-own
 import { S3BucketPublicAccessBlock } from "@cdktf/provider-aws/lib/s3-bucket-public-access-block";
 import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
 import { LambdaFunctionUrl } from "@cdktf/provider-aws/lib/lambda-function-url";
-import { DynamodbTable } from "@cdktf/provider-aws/lib/dynamodb-table";
+import {
+  DynamodbTable,
+  DynamodbTableConfig,
+} from "@cdktf/provider-aws/lib/dynamodb-table";
 import { LambdaPermission } from "@cdktf/provider-aws/lib/lambda-permission";
 import { Lexv2ModelsBot } from "@cdktf/provider-aws/lib/lexv2models-bot";
 import { Lexv2ModelsIntent } from "@cdktf/provider-aws/lib/lexv2models-intent";
 import { Lexv2ModelsBotLocale } from "@cdktf/provider-aws/lib/lexv2models-bot-locale";
+import { rooms } from "./utils/data";
 import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
-// import { CloudformationStack } from "@cdktf/provider-aws/lib/cloudformation-stack";
-// import { Lexv2ModelsSlot } from "@cdktf/provider-aws/lib/lexv2models-slot";
-// import { Lexv2ModelsSlotType } from "@cdktf/provider-aws/lib/lexv2models-slot-type";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -52,6 +53,10 @@ class ServerlessProjectStack extends TerraformStack {
     // this.StaticWebsite();
 
     // this.HelloWorldLambda();
+
+    this.DynamoDB();
+
+    this.Lambda("list-rooms");
   }
 
   Lex(lambda: LambdaFunction) {
@@ -98,11 +103,51 @@ class ServerlessProjectStack extends TerraformStack {
   }
 
   DynamoDB() {
-    const table = new DynamodbTable(this, "dynamodb-bookings", {
-      name: "Bookings",
+    /**
+     * refs:
+     * - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypeDescriptors
+     */
+    const defaultTableConf: Partial<DynamodbTableConfig> = {
       billingMode: "PROVISIONED",
       readCapacity: 5,
       writeCapacity: 5,
+    };
+
+    const roomsTable = new DynamodbTable(this, "dynamodb-rooms", {
+      name: "Rooms",
+      hashKey: "id",
+      attribute: [
+        {
+          name: "id",
+          type: "S",
+        },
+      ],
+      ...defaultTableConf,
+    });
+
+    for (const room of rooms) {
+      new DynamodbTableItem(this, `dynamodb-room-item-${room.id}`, {
+        dependsOn: [roomsTable],
+        tableName: roomsTable.name,
+        hashKey: roomsTable.hashKey,
+        item: JSON.stringify({
+          id: { S: room.id },
+          number: { S: room.number },
+          image: { S: room.image },
+          price: { N: room.price.toString() },
+          type: { S: room.type.toString() },
+          subtype: { S: room.subtype.toString() },
+          available: { BOOL: room.available },
+          hotel: { S: room.hotel },
+          maxGuests: { N: room.maxGuests.toString() },
+          location: { S: room.location },
+          amenities: { SS: room.amenities },
+        }),
+      });
+    }
+
+    new DynamodbTable(this, "dynamodb-reservations", {
+      name: "Reservations",
       hashKey: "ReferenceCode",
       attribute: [
         {
@@ -110,21 +155,7 @@ class ServerlessProjectStack extends TerraformStack {
           type: "N",
         },
       ],
-    });
-
-    new DynamodbTableItem(this, "dynamodb-bookings-dummy-data", {
-      dependsOn: [table],
-      hashKey: table.hashKey,
-      tableName: table.name,
-      item: JSON.stringify({
-        ReferenceCode: { N: "0" },
-        CheckIn: { N: "1718831379" },
-        CheckOut: { N: "1718831379" },
-        Payment: { N: "100" },
-        Room: {
-          M: { Number: { N: "1" }, Type: { S: "ROOM" }, Id: { S: "room-id" } },
-        },
-      }),
+      ...defaultTableConf,
     });
   }
 
@@ -260,6 +291,30 @@ class ServerlessProjectStack extends TerraformStack {
     });
 
     new LambdaFunctionUrl(this, "hellow-world-lambda-url", {
+      authorizationType: "NONE",
+      functionName: lambda.functionName,
+      dependsOn: [lambda],
+      cors: {
+        allowOrigins: ["*"],
+      },
+    });
+  }
+
+  Lambda(name: string) {
+    const asset = new TerraformAsset(this, `${name}-lambda-asset`, {
+      path: path.resolve(getLambdaDirectory(), name),
+      type: AssetType.ARCHIVE,
+    });
+
+    const lambda = new LambdaFunction(this, `${name}-lambda`, {
+      functionName: name,
+      role: LAB_ROLE,
+      runtime: "nodejs20.x",
+      filename: asset.path,
+      handler: "index.handler",
+    });
+
+    new LambdaFunctionUrl(this, `${name}-lambda-url`, {
       authorizationType: "NONE",
       functionName: lambda.functionName,
       dependsOn: [lambda],

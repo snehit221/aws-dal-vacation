@@ -1,9 +1,28 @@
 import { FaHome, FaLocationArrow, FaEye } from "react-icons/fa";
-import { rooms } from "../lib/data";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { ax } from "../lib/client";
+import { Room } from "../lib/dto";
+import { Loading } from "../components/loading";
 
 export const Index = () => {
   const navigate = useNavigate();
+
+  const { data, isFetching } = useQuery({
+    queryKey: ["rooms"],
+    queryFn: () =>
+      ax
+        .get(
+          `https://yrysowdho3adapidj66dxifddu0yaizx.lambda-url.us-east-1.on.aws/`
+        )
+        .then((res) => res.data as Room[]),
+  });
+
+  if (isFetching) {
+    return <Loading />;
+  }
+
+  const rooms = data || [];
 
   return (
     <div>
