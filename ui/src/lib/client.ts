@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
         toast.error(JSON.stringify(error.response?.data));
         return;
       }
-      toast.error(error.message);
+      toast.error(error?.message);
     },
   }),
   mutationCache: new MutationCache({
@@ -21,7 +21,7 @@ export const queryClient = new QueryClient({
         toast.error(error.response?.data);
         return;
       }
-      toast.error(error.message);
+      toast.error(error?.message);
     },
   }),
 });

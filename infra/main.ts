@@ -8,6 +8,7 @@ import {
   TerraformOutput,
   TerraformAsset,
   AssetType,
+  ITerraformDependable,
 } from "cdktf";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
@@ -56,10 +57,17 @@ class ServerlessProjectStack extends TerraformStack {
 
     this.DynamoDB();
 
-    const lambdas = ["list-rooms", "get-room-by-id"];
+    const roomsBucket = this.RoomsImagesS3();
+
+    const lambdas = [
+      { name: "list-rooms" },
+      { name: "get-room-by-id" },
+      { name: "add-room" },
+      { name: "upload-room-image", dependsOn: [roomsBucket] },
+    ];
 
     for (const lambda of lambdas) {
-      this.Lambda(lambda);
+      this.Lambda(lambda.name, lambda.dependsOn);
     }
   }
 
@@ -161,6 +169,58 @@ class ServerlessProjectStack extends TerraformStack {
       ],
       ...defaultTableConf,
     });
+  }
+
+  RoomsImagesS3() {
+    const BUCKET = "dalvacation-rooms-dal";
+
+    const bucket = new S3Bucket(this, BUCKET, {
+      bucket: BUCKET,
+      tags: {
+        cdktf: "true",
+      },
+    });
+
+    const bucketPublicAccessBlock = new S3BucketPublicAccessBlock(
+      this,
+      "rooms-bucket-public-access",
+      {
+        bucket: bucket.bucket,
+        dependsOn: [bucket],
+        blockPublicAcls: false,
+      }
+    );
+
+    const ownershipControls = new S3BucketOwnershipControls(
+      this,
+      "rooms-bucket-ownership",
+      {
+        bucket: bucket.bucket,
+        dependsOn: [bucketPublicAccessBlock],
+        rule: {
+          objectOwnership: "BucketOwnerPreferred",
+        },
+      }
+    );
+
+    const bucketPolicy = new S3BucketPolicy(this, "rooms-bucket-policy", {
+      bucket: bucket.bucket,
+      dependsOn: [ownershipControls],
+      policy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "Access",
+            Effect: "Allow",
+            Principal: "*",
+            Action: ["s3:*"],
+            Resource: [`arn:aws:s3:::${BUCKET}`, `arn:aws:s3:::${BUCKET}/*`],
+          },
+        ],
+      }),
+    });
+
+    return bucketPolicy;
   }
 
   StaticWebsite() {
@@ -304,7 +364,7 @@ class ServerlessProjectStack extends TerraformStack {
     });
   }
 
-  Lambda(name: string) {
+  Lambda(name: string, dependsOn?: ITerraformDependable[]) {
     const asset = new TerraformAsset(this, `${name}-lambda-asset`, {
       path: path.resolve(getLambdaDirectory(), name),
       type: AssetType.ARCHIVE,
@@ -312,6 +372,7 @@ class ServerlessProjectStack extends TerraformStack {
 
     const lambda = new LambdaFunction(this, `${name}-lambda`, {
       functionName: name,
+      dependsOn,
       role: LAB_ROLE,
       runtime: "nodejs20.x",
       filename: asset.path,

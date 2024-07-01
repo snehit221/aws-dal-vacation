@@ -33,7 +33,7 @@ export const Index = () => {
         {rooms.map((room) => (
           <div className="flex flex-col bg-white border shadow-sm rounded-xl w-1/3">
             <img
-              className="w-full h-auto rounded-t-xl"
+              className="w-full h-60 object-cover rounded-t-xl"
               src={room.image}
               alt="Image Description"
             />
