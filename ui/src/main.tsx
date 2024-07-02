@@ -9,6 +9,8 @@ import { Layout } from "./layout";
 import { RoomView } from "./pages/room-view";
 import { RoomForm } from "./pages/room-form";
 import { queryClient } from "./lib/client";
+import Signup from "./pages/Authentication/signup";
+import Signin from "./pages/Authentication/signin";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +28,14 @@ const router = createBrowserRouter([
       {
         path: "/room/add",
         Component: RoomForm,
+      },
+      {
+        path: "/auth/signup",
+        Component: Signup,
+      },
+      {
+        path: "/auth/signin",
+        Component: Signin,
       },
     ],
   },

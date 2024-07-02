@@ -14,8 +14,11 @@ export const Layout = () => {
           DalVacation
         </h1>
         <input placeholder="Search" className="w-1/3 mx-auto" />
-        <button type="submit" className="primary">
+        <button type="button" className="primary" onClick={() => navigate(`/auth/signin`)}>
           Login
+        </button>
+        <button type="button" className="primary ml-2" onClick={() => navigate(`/auth/signup`)}>
+          Sign Up
         </button>
       </nav>
 
