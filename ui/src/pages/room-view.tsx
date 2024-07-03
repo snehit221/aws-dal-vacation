@@ -9,8 +9,10 @@ import { ax } from "../lib/client";
 import { lambdas } from "../lib/constants";
 import { Reservation, ReservationPayload, Room } from "../lib/dto";
 import { Loading } from "../components/loading";
+import { useUserStore } from "../store/user";
 
 export const RoomView = () => {
+  const userId = useUserStore();
   const { roomId } = useParams();
 
   const {
@@ -170,8 +172,7 @@ export const RoomView = () => {
                 checkOut: endDate.toDate(),
                 paid: (room?.price || 0) * totalDays,
                 roomId,
-                // TODO
-                userId: "1",
+                userId,
                 guests,
               })
             }

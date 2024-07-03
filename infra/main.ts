@@ -67,6 +67,7 @@ class ServerlessProjectStack extends TerraformStack {
       { name: "delete-room" },
       { name: "reserve-room" },
       { name: "reserved-dates-by-room" },
+      { name: "list-reservation-by-user" },
       { name: "upload-room-image", dependsOn: [roomsBucket] },
     ];
 
@@ -399,6 +400,8 @@ class ServerlessProjectStack extends TerraformStack {
     new TerraformOutput(this, `${name}-lambda-url-display`, {
       value: url.functionUrl,
     });
+
+    return url;
   }
 }
 

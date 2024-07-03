@@ -39,3 +39,8 @@ export type ReservationPayload = Omit<Reservation, "referenceCode"> & {
   userId: string;
   roomId: string;
 };
+
+export type ReservationWithRoom = Reservation & {
+  ReferenceCode: string;
+  roomDetails: Room;
+};
