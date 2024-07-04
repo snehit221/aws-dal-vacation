@@ -8,4 +8,5 @@ export const lambdas = {
   reserveRoom: import.meta.env.VITE_RESERVE_ROOM_LAMBDA,
   reservedDatesByRoom: import.meta.env.VITE_RESERVED_DATES_BY_ROOM_LAMBDA,
   listReservationsByRoom: import.meta.env.VITE_LIST_RESERVATIONS_BY_USER_LAMBDA,
+  postFeedback: import.meta.env.VITE_POST_FEEDBACK_LAMBDA,
 };

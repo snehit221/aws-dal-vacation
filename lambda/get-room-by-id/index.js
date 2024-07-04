@@ -39,6 +39,7 @@ exports.handler = async (event) => {
     }
 
     room.amenities = room.amenities?.values ? [...room.amenities] : [];
+    room.feedback = room.feedback?.values ? [...room.feedback] : [];
 
     return {
       statusCode: 200,

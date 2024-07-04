@@ -25,6 +25,10 @@ export type Room = {
   maxGuests: number;
   location: string;
   amenities: string[];
+  feedback: Array<{
+    userId: string;
+    feedback: string;
+  }>;
 };
 
 export type Reservation = {

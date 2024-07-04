@@ -3,11 +3,16 @@ import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ax } from "../lib/client";
 import { lambdas } from "../lib/constants";
-import { Reservation, ReservationPayload, Room } from "../lib/dto";
+import {
+  Reservation,
+  ReservationPayload,
+  ReservationWithRoom,
+  Room,
+} from "../lib/dto";
 import { Loading } from "../components/loading";
 import { useUserStore } from "../store/user";
 
@@ -36,6 +41,24 @@ export const RoomView = () => {
       ),
   });
 
+  const reservationByUserQuery = useQuery<ReservationWithRoom[]>({
+    queryKey: ["reservations", userId],
+    enabled: !!userId,
+  });
+
+  const postFeedbackMutation = useMutation({
+    mutationFn: (feedback: string) =>
+      ax.post(lambdas.postFeedback, {
+        userId,
+        roomId,
+        feedback,
+      }),
+  });
+
+  const reservationByRoom = reservationByUserQuery.data?.find(
+    (r) => r.roomDetails.id === roomId
+  );
+
   const [guests, setGuests] = useState(0);
 
   const [startDate, setStartDate] = useState(dayjs());
@@ -51,6 +74,8 @@ export const RoomView = () => {
     onSuccess: (data) =>
       toast.success(`Your reservation code is ${data.referenceCode}`),
   });
+
+  const [feedback, setFeedback] = useState("");
 
   if (isFetching || roomReservationsQuery.isFetching) {
     return <Loading />;
@@ -79,8 +104,45 @@ export const RoomView = () => {
     );
   });
 
+  let ReservationWidget: ReactNode;
+
+  if (reservationByRoom) {
+    ReservationWidget = (
+      <div className="bg-green-100 text-green-600 p-5 mb-5 rounded-lg shadow-sm text-sm space-y-2">
+        <p>
+          You have reservation for this room from{" "}
+          <b>{dayjs(reservationByRoom.checkIn).format("MMM DD, YYYY")} </b> to{" "}
+          <b>{dayjs(reservationByRoom.checkOut).format("MMM DD, YYYY")}</b>.
+        </p>
+        <p>
+          Your booking reference code is{" "}
+          <b>{reservationByRoom.ReferenceCode}</b>
+        </p>
+        {!room?.feedback?.find((f) => f.userId === userId) ? (
+          <div>
+            <label className="text-green-600 mb-1">Feedback: </label>
+            <textarea
+              className="w-full"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+            />
+            <button
+              className="primary"
+              onClick={() => postFeedbackMutation.mutate(feedback)}
+            >
+              Submit
+            </button>
+          </div>
+        ) : (
+          <p>You already submitted feedback</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
+      {ReservationWidget}
       <span className="font-medium text-gray-500 hover:text-gray-600 mb-2 flex gap-3 items-center">
         <FaHotel />
         {firstLetterCapital(room?.type)} - {firstLetterCapital(room?.subtype)}
@@ -110,6 +172,14 @@ export const RoomView = () => {
                 </ul>
               </>
             )}
+            <div>
+              <b>Feedbacks ({room?.feedback?.length})</b>
+              <ul className="list-disc">
+                {room?.feedback?.map((f) => (
+                  <li>{f.feedback}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
         <div className="">
