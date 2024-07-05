@@ -1,0 +1,32 @@
+import json
+import boto3
+
+def lambda_handler(event, context):
+    sns_client = boto3.client('sns')
+    
+    # The ARN of the SNS topic
+    topic_arn = 'arn:aws:sns:us-east-1:813697295019:AuthenticationTopic'
+    
+    # Email address of the customer to subscribe
+    email = event['email']
+    
+    # Subscribe the user to the SNS topic - for flow during the registration
+    response = sns_client.subscribe(
+        TopicArn=topic_arn,
+        Protocol='email',
+        Endpoint=email
+    )
+    
+    
+    # Check if the subscription request was successful
+    if response['SubscriptionArn']:
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Subscription request sent successfully. Please confirm your subscription via email.')
+        }
+    else:
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Failed to subscribe the user.')
+        }
+
