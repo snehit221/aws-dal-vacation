@@ -1,0 +1,78 @@
+/* styles.css */
+
+/* body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+} */
+
+.feedback-title {
+  font-size: 28px;
+  color: #333;
+  text-align: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(to right, #4CAF50, #81C784);
+  -webkit-background-clip: text;
+  position: sticky;
+  color: transparent;
+}
+
+.table-container {
+  width: 80%;
+  max-height: 600px; /* Set the maximum height for the container */
+  overflow-y: auto; /* Enable vertical scrolling */
+  margin: 20px auto;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  position: relative;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #4CAF50;
+  color: white;
+  position: sticky;
+  top: 0; /* Stick the header to the top */
+  z-index: 1; /* Ensure the header stays above the table body */
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+th {
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  border-bottom: 1px solid #dddddd;
+}
+
+tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+tbody tr:last-of-type {
+  border-bottom: 2px solid #4CAF50;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}

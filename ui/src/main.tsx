@@ -10,6 +10,8 @@ import { RoomView } from "./pages/room-view";
 import { RoomForm } from "./pages/room-form";
 import { queryClient } from "./lib/client";
 import { EditRoom } from "./pages/edit-room";
+import Dashboard from "./pages/dashboard/dashboard";
+import Feedback from "./pages/feedback/feedback";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +35,14 @@ const router = createBrowserRouter([
         Component: EditRoom,
       },
     ],
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  {
+    path: "/feedback",
+    element: <Feedback />,
   },
 ]);
 
