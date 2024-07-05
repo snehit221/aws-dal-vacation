@@ -1,7 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { LanguageServiceClient } = require('@google-cloud/language');
-const googleCredentials = require('./csci-418118-bc809dee4a8a.json'); // Importing the credentials file
+const googleCredentials = require('./csci-418118-bc809dee4a8a.json'); 
 
 // Initialize DynamoDB client
 const ddbClient = new DynamoDBClient();

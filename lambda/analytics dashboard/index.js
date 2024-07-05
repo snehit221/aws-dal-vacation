@@ -1,12 +1,11 @@
-// Required modules
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { unmarshall } = require("@aws-sdk/util-dynamodb"); // Correct import for unmarshall
+const { unmarshall } = require("@aws-sdk/util-dynamodb"); 
 const { google } = require("googleapis");
 const sheets = google.sheets("v4");
 
 // Google Sheets and DynamoDB configurations
 const SPREADSHEET_ID = '1cS4e_Zsm3xJcCzSRVd1pxE27UihjmkuMetvkKwzXaaM';
-const RANGE = 'Sheet1!A1'; // Adjust based on your sheet
+const RANGE = 'Sheet1!A1'; 
 
 // Initialize DynamoDB client
 const client = new DynamoDBClient();
@@ -39,14 +38,13 @@ async function appendToGoogleSheet(values) {
     // Define the column order as per your sheet
     const columnOrder = [
         'userID',
-        'name',
-        'securityQuestion',
-        'securityAnswer',
-        'caeserCipherShift',
-        'cipherText',
+        'email',
+        'firstName',
+        'lastloginDate',
+        'lastName',
+        'password',
         'role',
-        'createdAt',
-        'updatedAt'
+        'signupDate'
     ];
 
     // Map values to match column order and handle missing values
