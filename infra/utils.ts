@@ -1,6 +1,8 @@
 import * as path from "path";
 import * as fs from "fs";
 
+export const LAB_ROLE = "arn:aws:iam::759664679407:role/LabRole";
+
 export const getLambdaDirectory = () => path.resolve(__dirname, "../lambda");
 
 export const getUIBuildDirectoryPath = () =>

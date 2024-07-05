@@ -1,3 +1,83 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+input, select {
+    @apply block !important;
+    @apply rounded-md !important;
+    @apply border-0 !important;
+    @apply py-1.5 !important;
+    @apply text-gray-900 !important;
+    @apply shadow-sm !important;
+    @apply ring-1 !important;
+    @apply ring-inset !important;
+    @apply ring-gray-300 !important;
+    @apply placeholder:text-gray-400 !important;
+    @apply focus:ring-2 !important;
+    @apply focus:ring-inset !important;
+    @apply focus:ring-indigo-600 !important;
+    @apply sm:text-sm sm:leading-6 !important;
+}
+
+button {
+    @apply text-sm;
+    @apply rounded-md;
+    @apply font-semibold;
+    @apply leading-6;
+    @apply text-gray-900;
+    @apply px-3; 
+    @apply py-2;
+    @apply border-[1px];
+    @apply border-gray-200;
+}
+
+button.primary {
+    @apply rounded-md;
+    @apply bg-indigo-600; 
+    @apply px-3; 
+    @apply py-2; 
+    @apply text-sm; 
+    @apply font-semibold; 
+    @apply text-white; 
+    @apply shadow-sm; 
+    @apply hover:bg-indigo-500; 
+    @apply focus-visible:outline; 
+    @apply focus-visible:outline-2; 
+    @apply focus-visible:outline-offset-2; 
+    @apply focus-visible:outline-indigo-600;
+}
+
+button.danger {
+    @apply bg-red-600;
+    @apply hover:bg-red-500; 
+    @apply focus-visible:outline; 
+    @apply focus-visible:outline-2; 
+    @apply focus-visible:outline-offset-2; 
+    @apply focus-visible:outline-red-600;
+    @apply text-sm; 
+    @apply font-semibold; 
+    @apply text-white; 
+}
+
+label {
+    @apply block;
+    @apply text-sm;
+    @apply font-medium;
+    @apply leading-6;
+    @apply text-gray-900;
+}
+
+.badge {
+    @apply inline-flex;
+    @apply items-center;
+    @apply rounded-md;
+    @apply bg-indigo-50;
+    @apply px-2;
+    @apply py-1;
+    @apply text-xs;
+    @apply font-medium;
+    @apply text-indigo-700;
+    @apply ring-1;
+    @apply ring-inset;
+    @apply ring-indigo-700/10;
+}

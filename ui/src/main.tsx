@@ -1,15 +1,40 @@
 import React from "react";
+import { Toaster } from "react-hot-toast";
+import { QueryClientProvider } from "@tanstack/react-query";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import { Index } from "./pages";
+import { Layout } from "./layout";
+import { RoomView } from "./pages/room-view";
+import { RoomForm } from "./pages/room-form";
+import { queryClient } from "./lib/client";
+import { EditRoom } from "./pages/edit-room";
 import Dashboard from "./pages/dashboard/dashboard";
 import Feedback from "./pages/feedback/feedback";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Index />,
+    Component: Layout,
+    children: [
+      {
+        path: "/",
+        Component: Index,
+      },
+      {
+        path: "/room/:roomId",
+        Component: RoomView,
+      },
+      {
+        path: "/room/add",
+        Component: RoomForm,
+      },
+      {
+        path: "/room/:roomId/edit",
+        Component: EditRoom,
+      },
+    ],
   },
   {
     path: "/dashboard",
@@ -23,6 +48,9 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <Toaster />
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   </React.StrictMode>
 );
