@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import './styles.css'
+import './feedback.css';
 
 interface FeedbackItem {
   feedbackId: string;
+  userId: string;
   comment: string;
   sentiment_score: number;
   sentiment_magnitude: number;
@@ -28,41 +29,36 @@ function Feedback() {
       });
   }, []);
 
-  const tableStyle = {
-    borderCollapse: 'collapse',
-    width: '100%',
-  };
-
-  const thTdStyle = {
-    border: '1px solid black',
-    padding: '8px',
-    textAlign: 'left',
-  };
-
-
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Feedback ID</th>
-          <th>Comment</th>
-          <th>Sentiment Score</th>
-          <th>Sentiment Magnitude</th>
-          <th>Attitude</th>
-        </tr>
-      </thead>
-      <tbody>
-        {feedback.map((item) => (
-          <tr key={item.feedbackId}>
-            <td>{item.feedbackId}</td>
-            <td>{item.comment}</td>
-            <td>{item.sentiment_score}</td>
-            <td>{item.sentiment_magnitude}</td>
-            <td>{item.attitude}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div>
+      <h1 className="feedback-title">Customers' Feedback</h1>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Feedback ID</th>
+              <th>User Name</th>
+              <th>Comment</th>
+              <th>Sentiment Score</th>
+              <th>Sentiment Magnitude</th>
+              <th>Attitude</th>
+            </tr>
+          </thead>
+          <tbody>
+            {feedback.map((item) => (
+              <tr key={item.feedbackId}>
+                <td>{item.feedbackId}</td>
+                <td>{item.userId}</td>
+                <td>{item.comment}</td>
+                <td>{item.sentiment_score}</td>
+                <td>{item.sentiment_magnitude}</td>
+                <td>{item.attitude}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
