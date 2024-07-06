@@ -11,7 +11,8 @@ import { RoomForm } from "./pages/room-form";
 import { queryClient } from "./lib/client";
 import Signup from "./pages/Authentication/signup";
 import Signin from "./pages/Authentication/signin";
-// import SecondFactor from "./pages/Authentication/secondFactor";
+import SecondFactor from "./pages/Authentication/secondFactor";
+import ThirdFactor from "./pages/Authentication/thirdFactor";
 
 const router = createBrowserRouter([
   {
@@ -38,10 +39,14 @@ const router = createBrowserRouter([
         path: "/auth/signin",
         Component: Signin,
       },
-      // {
-      //   path: "/auth/second-factor",
-      //   Component: SecondFactor
-      // }
+      {
+        path: "/auth/second-factor",
+        Component: SecondFactor,
+      },
+      {
+        path: "/auth/third-factor",
+        Component: ThirdFactor,
+      },
     ],
   },
 ]);

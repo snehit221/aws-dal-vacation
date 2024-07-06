@@ -2,26 +2,12 @@ import axios from "axios";
 import { useForm } from "react-hook-form";
 import { lambdas } from "../../lib/constants";
 
-const questions = [
-  "What was your childhood nickname?",
-  "What is the name of your favorite childhood friend?",
-  "What was the name of your first pet?",
-  "In what city were you born?",
-  "What is your mother's maiden name?",
-];
-
 interface FormData {
   username: string;
-  // firstName?: string;
-  // lastName?: string;
-  // email: string;
-  // password: string;
-  // confirmPassword?: string;
-  question?: string;
-  answer?: string;
+  key: string;
 }
 
-const SecondFactor = () => {
+const ThirdFactor = () => {
   const {
     register,
     handleSubmit,
@@ -30,7 +16,7 @@ const SecondFactor = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post(lambdas.setSecurityQuestion, data);
+      const response = await axios.post(lambdas.storeSecurityKey, data);
       console.log(response.data);
     } catch {
       console.log("Error", Error);
@@ -39,10 +25,12 @@ const SecondFactor = () => {
   };
 
   return (
-    <div className="relative mx-auto mt-16 w-full max-w-7xl items-center px-5 md:px-12 lg:px-20">
+    <div className="relative mx-auto w-full max-w-7xl items-center px-5 md:px-12 lg:px-20">
       <div className="md:w-84 mx-auto w-full max-w-xl rounded-3xl border-2 bg-gray-50 p-4 shadow-xl sm:p-4 md:max-w-md md:px-6 md:py-4">
         <div className="flex flex-col">
-          <div className="items-center justify-center"></div>
+          <div className="items-center justify-center">
+            <h2 className="text-3xl text-black uppercase">enter cipher key</h2>
+          </div>
         </div>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mt-4 space-y-4">
@@ -74,57 +62,36 @@ const SecondFactor = () => {
             </div>
             <div>
               <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                Security Question
-              </label>
-              <select
-                className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
-                {...register("question", {
-                  required: "Please select a security question",
-                })}
-              >
-                <option value="">Select a security question</option>
-                {questions.map((question, index) => (
-                  <option key={index} value={question}>
-                    {question}
-                  </option>
-                ))}
-              </select>
-              {errors.question && (
-                <h2 className="mt-[-2px] text-right text-red-500">
-                  {errors.question.message}
-                </h2>
-              )}
-            </div>
-            <div>
-              <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                Answer
+                Key
               </label>
               <input
                 className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
                 type="text"
-                placeholder="Answer"
-                {...register("answer", {
-                  required: "Answer cannot be empty",
+                placeholder="Enter key"
+                {...register("key", {
+                  required: "Key is required",
+                  minLength: {
+                    value: 1,
+                    message: "Key must be at least 1 characters",
+                  },
                   maxLength: {
-                    value: 50,
-                    message: "Must be 50 characters or less",
+                    value: 2,
+                    message: "Must be 2 characters or less",
                   },
                 })}
               />
-              {errors.answer && (
+              {errors.key && (
                 <h2 className="mt-[-2px] text-right text-red-500">
-                  {errors.answer.message}
+                  {errors.key.message}
                 </h2>
               )}
             </div>
-            {/* </>
-            )} */}
             <div className="col-span-full mt-10">
               <button
                 className="inline-flex text-md mb-4 w-full items-center justify-center rounded-xl border-2 border-black bg-slate-900 px-6 py-2.5 text-center text-white hover:bg-slate-700"
                 type="submit"
               >
-                Next
+                Submit
               </button>
             </div>
           </div>
@@ -134,4 +101,4 @@ const SecondFactor = () => {
   );
 };
 
-export default SecondFactor;
+export default ThirdFactor;
