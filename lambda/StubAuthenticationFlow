@@ -1,21 +1,35 @@
 import json
 import boto3
+import logging
+
+
+sns_client = boto3.client('sns')
+
+# Initialize logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 def lambda_handler(event, context):
-    sns_client = boto3.client('sns')
-    
+
     # The ARN of the SNS topic
     topic_arn = 'arn:aws:sns:us-east-1:813697295019:AuthenticationTopic'
     
     # Email address of the customer to subscribe
-    email = event['email']
+    
+    #will later get this email from the cognito registration part
+    user_email = event['email']
+    request_type = "registration"
     
     # Subscribe the user to the SNS topic - for flow during the registration
     response = sns_client.subscribe(
         TopicArn=topic_arn,
         Protocol='email',
-        Endpoint=email
+        Endpoint=user_email
     )
+    
+    #create a JSON payload to publish to the sns topic 
+    publish_authentication_data_to_sns(topic_arn, request_type, user_email)
     
     
     # Check if the subscription request was successful
@@ -30,3 +44,21 @@ def lambda_handler(event, context):
             'body': json.dumps('Failed to subscribe the user.')
         }
 
+
+def publish_authentication_data_to_sns(topic_arn, request_type, user_email):
+    # publishing a JSON message to the SNS topic that will be sent to the SQS queue will a 
+    #polling time
+    message = {
+        "request_type": request_type,
+        "user_email": user_email
+        }
+    
+    try:
+        response = sns_client.publish(
+            TopicArn=topic_arn,
+            Message=json.dumps(message)
+        )
+        logger.info(f"Message published to SNS topic. Message ID: {response['MessageId']}")
+        return response
+    except Exception as e:
+        logger.error(f"Error publishing message to SNS: {str(e)}")
