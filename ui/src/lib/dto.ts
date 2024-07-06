@@ -25,6 +25,10 @@ export type Room = {
   maxGuests: number;
   location: string;
   amenities: string[];
+  feedback: Array<{
+    userId: string;
+    feedback: string;
+  }>;
 };
 
 export type Reservation = {
@@ -32,4 +36,15 @@ export type Reservation = {
   checkIn: Date;
   checkOut: Date;
   paid: number;
+  guests: number;
+};
+
+export type ReservationPayload = Omit<Reservation, "referenceCode"> & {
+  userId: string;
+  roomId: string;
+};
+
+export type ReservationWithRoom = Reservation & {
+  ReferenceCode: string;
+  roomDetails: Room;
 };

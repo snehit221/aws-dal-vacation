@@ -1,9 +1,56 @@
 import { FaTimes } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { Room, RoomSubType, RoomType } from "../lib/dto";
+import { useMutation } from "@tanstack/react-query";
+import { ax } from "../lib/client";
+import { lambdas } from "../lib/constants";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+type RoomForm = Omit<Room, "id">;
 
 export const RoomForm = () => {
-  const form = useForm<Omit<Room, "id">>();
+  const navigate = useNavigate();
+  const form = useForm<RoomForm>({
+    defaultValues: {
+      type: RoomType.NORMAL,
+      subtype: RoomSubType.DELUXE,
+    },
+  });
+
+  const [file, setFile] = useState<File | null>(null);
+
+  const addRoomMutation = useMutation({
+    mutationFn: (data: RoomForm) =>
+      ax.post(lambdas.addRoom, data).then(async (res) => {
+        const data = res.data;
+
+        const id = data.id as string;
+
+        if (file) {
+          const formData = new FormData();
+          formData.append("file", file);
+          await ax.post(`${lambdas.uploadRoomImage}?roomId=${id}`, formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        } else {
+          throw new Error("File not uploaded");
+        }
+
+        return id;
+      }),
+    onSuccess: (id) => {
+      toast.success("Room added successfully");
+      navigate(`/room/${id}`);
+    },
+  });
+
+  const amenities = form.watch("amenities") || [];
+
+  const onSubmit = form.handleSubmit((data) => addRoomMutation.mutate(data));
 
   return (
     <>
@@ -11,7 +58,16 @@ export const RoomForm = () => {
       <div className="mt-5 flex gap-10 flex-wrap">
         <div className="w-full">
           <label htmlFor="img">Photo: </label>
-          <input id="img" type="file" className="w-full p-5" />
+          <input
+            id="img"
+            type="file"
+            accept="image/jpeg"
+            className="w-full p-5"
+            onChange={(event) => {
+              const selectedFile = event.target.files?.[0];
+              setFile(selectedFile || null);
+            }}
+          />
         </div>
         <div>
           <label className="mb-2" htmlFor="hotel">
@@ -64,9 +120,11 @@ export const RoomForm = () => {
           <label className="mb-2" htmlFor="type">
             Type:{" "}
           </label>
-          <select>
+          <select {...form.register("type")}>
             {Object.values(RoomType).map((t) => (
-              <option key={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
@@ -75,9 +133,11 @@ export const RoomForm = () => {
           <label className="mb-2" htmlFor="subtype">
             Subtype:{" "}
           </label>
-          <select>
+          <select {...form.register("subtype")}>
             {Object.values(RoomSubType).map((t) => (
-              <option key={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
@@ -99,10 +159,18 @@ export const RoomForm = () => {
           <label className="mb-2" htmlFor="amenities">
             Amenities:{" "}
           </label>
-          <div className="mb-3">
-            {(form.watch("amenities") || []).map((value) => (
-              <span className="badge items-center gap-1">
-                {value} <FaTimes />
+          <div className="mb-3 space-x-2">
+            {amenities.map((value) => (
+              <span key={value} className="badge items-center gap-1">
+                {value}{" "}
+                <FaTimes
+                  onClick={() => {
+                    form.setValue(
+                      "amenities",
+                      amenities.filter((am) => am !== value)
+                    );
+                  }}
+                />
               </span>
             ))}
           </div>
@@ -110,11 +178,31 @@ export const RoomForm = () => {
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <span className="text-gray-500 sm:text-sm">+</span>
             </div>
-            <input type="text" className="pl-7" placeholder="TV/Wifi/1 BED" />
+            <input
+              name="amenity"
+              type="text"
+              className="pl-7"
+              placeholder="TV/Wifi/1 BED"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  form.setValue("amenities", [
+                    ...amenities,
+                    e.currentTarget?.value,
+                  ]);
+                  e.currentTarget.value = "";
+                }
+              }}
+            />
           </div>
         </div>
       </div>
-      <button className="primary mt-10">Add</button>
+      <button
+        className="primary mt-10"
+        disabled={addRoomMutation.isPending}
+        onClick={onSubmit}
+      >
+        Add{addRoomMutation.isPending && "ing..."}
+      </button>
     </>
   );
 };

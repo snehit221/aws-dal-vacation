@@ -9,6 +9,9 @@ import { Layout } from "./layout";
 import { RoomView } from "./pages/room-view";
 import { RoomForm } from "./pages/room-form";
 import { queryClient } from "./lib/client";
+import { EditRoom } from "./pages/edit-room";
+import Dashboard from "./pages/dashboard/dashboard";
+import Feedback from "./pages/feedback/feedback";
 import Signup from "./pages/Authentication/signup";
 import Signin from "./pages/Authentication/signin";
 import SecondFactor from "./pages/Authentication/secondFactor";
@@ -47,7 +50,19 @@ const router = createBrowserRouter([
         path: "/auth/third-factor",
         Component: ThirdFactor,
       },
+      {
+        path: "/room/:roomId/edit",
+        Component: EditRoom,
+      },
     ],
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  {
+    path: "/feedback",
+    element: <Feedback />,
   },
 ]);
 

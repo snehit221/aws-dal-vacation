@@ -12,16 +12,16 @@ export const queryClient = new QueryClient({
         toast.error(JSON.stringify(error.response?.data));
         return;
       }
-      toast.error(error.message);
+      toast.error(error?.message);
     },
   }),
   mutationCache: new MutationCache({
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data);
+        toast.error(JSON.stringify(error.response?.data));
         return;
       }
-      toast.error(error.message);
+      toast.error(error?.message);
     },
   }),
 });

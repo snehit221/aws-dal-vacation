@@ -203,10 +203,10 @@ const AuthForm: React.FC<AuthFormProps> = ({
               <select
                 className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
                 {...register("role", {
-                  required: "Please select a security role",
+                  required: "Please select a role",
                 })}
               >
-                <option value="">Select a security role</option>
+                <option value="">Select a role</option>
                 {roles.map((role, index) => (
                   <option key={index} value={role}>
                     {role}

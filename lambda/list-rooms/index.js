@@ -17,6 +17,7 @@ exports.handler = async (event) => {
     const rooms = data.Items.map((room) => ({
       ...room,
       amenities: room.amenities?.values() ? [...room.amenities] : [],
+      feedback: room.feedback?.values() ? [...room.feedback] : [],
     }));
 
     return {

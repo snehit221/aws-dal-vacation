@@ -1,0 +1,64 @@
+import json
+import boto3
+import logging
+
+# Set up logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+sns_client = boto3.client('sns', region_name='us-east-1')
+
+sns_topic_arn = 'arn:aws:sns:us-east-1:813697295019:AuthenticationTopic'
+
+def lambda_handler(event, context):
+    try:
+        # Extract the message from the SNS event
+        for record in event['Records']:
+            sns_message = record['Sns']['Message']
+            message = json.loads(sns_message)
+            
+            user_name = message.get('user_name')
+            user_email = message.get('user_email')
+            request_type = message.get('request_type')
+            
+            logger.info(f"Received event for user: {user_name}, email: {user_email}, type: {request_type}")
+            
+            # Handle the event based on request_type
+            if request_type == 'registration':
+                subject = 'Registration Successful'
+                body_text = f"Hello {user_name},\n\nYou have successfully registered."
+            elif request_type == 'login':
+                subject = 'Login Successful'
+                body_text = f"Hello {user_name},\n\nYou have successfully logged in."
+            else:
+                subject = 'Unknown Event'
+                body_text = 'An unknown event occurred.'
+            
+            # Send the notification email (you can use the publish method for testing)
+            send_email_notification(user_email, subject, body_text)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Notification sent successfully')
+        }
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Internal server error')
+        }
+
+def send_email_notification(email, subject, body):
+    # Using SNS to send an email by publishing the messsage to the topic, the subscribed email will pick it up.
+    response = sns_client.publish(
+        TopicArn=sns_topic_arn,
+        Message=body,
+        Subject=subject,
+        MessageAttributes={
+            'email': {
+                'DataType': 'String',
+                'StringValue': email
+            }
+        }
+    )
+    logger.info(f"Message published to SNS topic. Message ID: {response['MessageId']}")
