@@ -12,6 +12,10 @@ import { queryClient } from "./lib/client";
 import { EditRoom } from "./pages/edit-room";
 import Dashboard from "./pages/dashboard/dashboard";
 import Feedback from "./pages/feedback/feedback";
+import Signup from "./pages/Authentication/signup";
+import Signin from "./pages/Authentication/signin";
+import SecondFactor from "./pages/Authentication/secondFactor";
+import ThirdFactor from "./pages/Authentication/thirdFactor";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +33,22 @@ const router = createBrowserRouter([
       {
         path: "/room/add",
         Component: RoomForm,
+      },
+      {
+        path: "/auth/signup",
+        Component: Signup,
+      },
+      {
+        path: "/auth/signin",
+        Component: Signin,
+      },
+      {
+        path: "/auth/second-factor",
+        Component: SecondFactor,
+      },
+      {
+        path: "/auth/third-factor",
+        Component: ThirdFactor,
       },
       {
         path: "/room/:roomId/edit",

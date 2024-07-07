@@ -26,8 +26,11 @@ export const Layout = () => {
           <FaTicketAlt />
           reservations
         </h4>
-        <button type="submit" className="primary">
+        <button type="button" className="primary" onClick={() => navigate(`/auth/signin`)}>
           Login
+        </button>
+        <button type="button" className="primary ml-2" onClick={() => navigate(`/auth/signup`)}>
+          Sign Up
         </button>
       </nav>
 
