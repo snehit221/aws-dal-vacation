@@ -18,6 +18,7 @@ const ThirdFactor = () => {
     try {
       const response = await axios.post(lambdas.storeSecurityKey, data);
       console.log(response.data);
+      await axios.post(lambdas.confirmUser, data);
     } catch {
       console.log("Error", Error);
     }

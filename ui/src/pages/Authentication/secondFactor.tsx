@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { lambdas } from "../../lib/constants";
+import { useNavigate } from "react-router-dom";
 
 const questions = [
   "What was your childhood nickname?",
@@ -22,6 +23,7 @@ interface FormData {
 }
 
 const SecondFactor = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -32,6 +34,7 @@ const SecondFactor = () => {
     try {
       const response = await axios.post(lambdas.setSecurityQuestion, data);
       console.log(response.data);
+      navigate("/auth/third-factor");
     } catch {
       console.log("Error", Error);
     }
