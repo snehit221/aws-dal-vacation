@@ -14,5 +14,7 @@ export const lambdas = {
   confirmUser: import.meta.env.VITE_CONFIRM_USER_LAMBDA,
   storeUserData: import.meta.env.VITE_STORE_USER_DATA,
   setSecurityQuestion: import.meta.env.VITE_SET_SECURITY_QUESTION,
-  storeSecurityKey: import.meta.env.VITE_STORE_KEY
+  getSecurityQuestion: import.meta.env.VITE_GET_SECURITY_QUESTION,
+  storeSecurityKey: import.meta.env.VITE_STORE_KEY,
+  decryptCipher:import.meta.env.VITE_DECRYPT_CIPHER
 };

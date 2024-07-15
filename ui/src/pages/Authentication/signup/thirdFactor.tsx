@@ -1,13 +1,14 @@
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { lambdas } from "../../lib/constants";
+import { lambdas } from "../../../lib/constants";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
-  username: string;
   key: string;
 }
 
 const ThirdFactor = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -16,8 +17,18 @@ const ThirdFactor = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post(lambdas.storeSecurityKey, data);
+      const username = localStorage.getItem("username");
+      if (!username) {
+        throw new Error("Username not found in local storage");
+      }
+
+      const requestData = { ...data, username };
+
+      const response = await axios.post(lambdas.storeSecurityKey, requestData);
       console.log(response.data);
+      if (response.status === 200) {
+        navigate("/");
+      }
     } catch {
       console.log("Error", Error);
     }
@@ -34,32 +45,6 @@ const ThirdFactor = () => {
         </div>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mt-4 space-y-4">
-            <div>
-              <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                Username
-              </label>
-              <input
-                className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
-                type="text"
-                placeholder="Username"
-                {...register("username", {
-                  required: "Username cannot be empty",
-                  minLength: {
-                    value: 4,
-                    message: "Username must be at least 4 characters",
-                  },
-                  maxLength: {
-                    value: 15,
-                    message: "Must be 15 characters or less",
-                  },
-                })}
-              />
-              {errors.username && (
-                <h2 className="mt-[-2px] text-right text-red-500">
-                  {errors.username.message}
-                </h2>
-              )}
-            </div>
             <div>
               <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
                 Key
