@@ -42,34 +42,34 @@ const AuthForm: React.FC<AuthFormProps> = ({
         </div>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mt-4 space-y-4">
+            <div>
+              <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
+                Username
+              </label>
+              <input
+                className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
+                type="text"
+                placeholder="Username"
+                {...register("username", {
+                  required: "Username cannot be empty",
+                  minLength: {
+                    value: 4,
+                    message: "Username must be at least 4 characters",
+                  },
+                  maxLength: {
+                    value: 15,
+                    message: "Must be 15 characters or less",
+                  },
+                })}
+              />
+              {errors.username && (
+                <h2 className="mt-[-2px] text-right text-red-500">
+                  {errors.username.message}
+                </h2>
+              )}
+            </div>
             {isSignup && (
               <>
-                <div>
-                  <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                    Username
-                  </label>
-                  <input
-                    className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
-                    type="text"
-                    placeholder="Username"
-                    {...register("username", {
-                      required: "Username cannot be empty",
-                      minLength: {
-                        value: 4,
-                        message: "Username must be at least 4 characters",
-                      },
-                      maxLength: {
-                        value: 15,
-                        message: "Must be 15 characters or less",
-                      },
-                    })}
-                  />
-                  {errors.username && (
-                    <h2 className="mt-[-2px] text-right text-red-500">
-                      {errors.username.message}
-                    </h2>
-                  )}
-                </div>
                 <div>
                   <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
                     First Name
@@ -124,28 +124,30 @@ const AuthForm: React.FC<AuthFormProps> = ({
                 </div>
               </>
             )}
-            <div>
-              <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                Email id
-              </label>
-              <input
-                className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
-                type="email"
-                placeholder="Enter email address"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
-              />
-              {errors.email && (
-                <h2 className="mt-[-2px] text-right text-red-500">
-                  {errors.email.message}
-                </h2>
-              )}
-            </div>
+            {isSignup && (
+              <div>
+                <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
+                  Email id
+                </label>
+                <input
+                  className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
+                  type="email"
+                  placeholder="Enter email address"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
+                />
+                {errors.email && (
+                  <h2 className="mt-[-2px] text-right text-red-500">
+                    {errors.email.message}
+                  </h2>
+                )}
+              </div>
+            )}
             <div>
               <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
                 Password
@@ -196,29 +198,32 @@ const AuthForm: React.FC<AuthFormProps> = ({
                 )}
               </div>
             )}
-            <div>
-              <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                Security Question
-              </label>
-              <select
-                className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
-                {...register("role", {
-                  required: "Please select a role",
-                })}
-              >
-                <option value="">Select a role</option>
-                {roles.map((role, index) => (
-                  <option key={index} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-              {errors.role && (
-                <h2 className="mt-[-2px] text-right text-red-500">
-                  {errors.role.message}
-                </h2>
-              )}
-            </div>
+            {isSignup && (
+              <div>
+                <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
+                  Security Question
+                </label>
+                <select
+                  className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
+                  {...register("role", {
+                    required: "Please select a role",
+                  })}
+                >
+                  <option value="">Select a role</option>
+                  {roles.map((role, index) => (
+                    <option key={index} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                {errors.role && (
+                  <h2 className="mt-[-2px] text-right text-red-500">
+                    {errors.role.message}
+                  </h2>
+                )}
+              </div>
+            )}
+
             <div className="col-span-full mt-10">
               <button
                 className="nline-flex text-md mb-4 w-full items-center justify-center rounded-xl border-2 border-black bg-slate-900 px-6 py-2.5 text-center text-white hover:bg-slate-700"

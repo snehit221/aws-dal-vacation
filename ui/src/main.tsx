@@ -12,10 +12,12 @@ import { queryClient } from "./lib/client";
 import { EditRoom } from "./pages/edit-room";
 import Dashboard from "./pages/dashboard/dashboard";
 import Feedback from "./pages/feedback/feedback";
-import Signup from "./pages/Authentication/signup";
-import Signin from "./pages/Authentication/signin";
-import SecondFactor from "./pages/Authentication/secondFactor";
-import ThirdFactor from "./pages/Authentication/thirdFactor";
+import Signup from "./pages/Authentication/signup/signup";
+import Signin from "./pages/Authentication/login/signin";
+import ThirdFactor from "./pages/Authentication/signup/thirdFactor";
+import GetSecurityQuestion from "./pages/Authentication/login/getSecurityQuestion";
+import LoginCipher from "./pages/Authentication/login/loginCipher";
+import SecondFactor from "./pages/Authentication/signup/secondFactor";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +51,14 @@ const router = createBrowserRouter([
       {
         path: "/auth/third-factor",
         Component: ThirdFactor,
+      },
+      {
+        path: "/auth/security-answer",
+        Component: GetSecurityQuestion,
+      },
+      {
+        path: "/auth/decrypt-cipher",
+        Component: LoginCipher,
       },
       {
         path: "/room/:roomId/edit",
