@@ -52,9 +52,12 @@ export const handler = async (event) => {
     const command = new SignUpCommand(signUpParams);
     let response = await client.send(command);
 
-    //SNS TOPIC
-    // response = await axios.post('https://localhost.execute-api.us-east-1.amazonaws.com/v1/subscribe-email', { username });
-    //     console.log(response);
+    //SNS TOPIC Subscription flow for Notifications
+    response = await axios.post('https://htlodukyi5.execute-api.us-east-1.amazonaws.com/prod/signup-subscribe', {
+      email: email
+    });
+
+    console.log("SNS TOPIC  RESP SIGNUP**** " + response.data);
 
     response = await axios.post(lambdas.storeUserData, {
       username,
