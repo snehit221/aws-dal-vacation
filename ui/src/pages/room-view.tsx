@@ -1,7 +1,7 @@
 import { FaHotel, FaPaypal, FaMap } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
 import { ReactNode, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import { useUserStore } from "../store/user";
 export const RoomView = () => {
   const userId = useUserStore();
   const { roomId } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: room,
@@ -142,6 +143,9 @@ export const RoomView = () => {
 
   return (
     <>
+      <div className="mb-5">
+        <button onClick={() => navigate(`/room/${roomId}/edit`)}>Edit</button>
+      </div>
       {ReservationWidget}
       <span className="font-medium text-gray-500 hover:text-gray-600 mb-2 flex gap-3 items-center">
         <FaHotel />

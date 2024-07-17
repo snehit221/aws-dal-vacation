@@ -26,6 +26,12 @@ export const Layout = () => {
           <FaTicketAlt />
           reservations
         </h4>
+        <h4
+          className="text-xs font-semibold uppercase mr-5 flex items-center gap-2 cursor-pointer hover:text-indigo-500"
+          onClick={() => navigate("/room/add")}
+        >
+          add
+        </h4>
         <button type="submit" className="primary">
           Login
         </button>
