@@ -4,9 +4,15 @@ import {
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import axios from "axios";
-import { lambdas } from "../../lib/constants";
+import {
+  CognitoIdentityProviderClient,
+  AdminConfirmSignUpCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
 
 const dynamoDBClient = new DynamoDBClient({ region: process.env.REGION });
+const confirmClient = new CognitoIdentityProviderClient({
+  region: process.env.REGION,
+});
 
 export const handler = async (event) => {
   const { username, key } = event;
@@ -50,15 +56,20 @@ export const handler = async (event) => {
       },
     };
 
+    const confirmUserParams = {
+      UserPoolId: process.env.USER_POOL_ID,
+      Username: username,
+    };
+
     const updateItemCommand = new UpdateItemCommand(updateItemParams);
     await dynamoDBClient.send(updateItemCommand);
 
-    const response = await axios.post(lambdas.confirmUser, { username });
-    console.log(response);
-
+    const confirmCommand = new AdminConfirmSignUpCommand(confirmUserParams);
+    const confirmResponse = await confirmClient.send(confirmCommand);
+    console.log(confirmResponse);
     return {
       statusCode: 200,
-      body: "Key added successfully.",
+      body: "Key added successfully, User added.",
     };
   } catch (error) {
     console.error("Error updating item:", error);
