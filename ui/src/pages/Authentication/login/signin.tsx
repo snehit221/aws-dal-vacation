@@ -13,8 +13,8 @@ export const Signin = () => {
   const onSubmit = async (values: FormData) => {
     try {
       const response = await axios.post(lambdas.signIn, values);
-      console.log(response.data);
       localStorage.setItem("username", values.username);
+      localStorage.setItem("token", response.data.idToken);
       navigate("/auth/security-answer");
     } catch {
       console.log("Error", Error);

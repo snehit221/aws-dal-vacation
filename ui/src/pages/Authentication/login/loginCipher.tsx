@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { lambdas } from "../../../lib/constants";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../../../store/user";
 
 interface FormData {
   word: string;
@@ -14,6 +15,7 @@ const sampleWords = ["test"];
 
 const LoginCipher = () => {
   const navigate = useNavigate();
+  const { setAccessToken } = useUserStore();
   const {
     register,
     handleSubmit,
@@ -44,6 +46,7 @@ const LoginCipher = () => {
       const response = await axios.post(lambdas.decryptCipher, requestData);
       console.log(response.data);
       if (response.status === 200) {
+        setAccessToken(localStorage.getItem("token") || "");
         navigate("/");
       } else {
         alert(response.data.body);

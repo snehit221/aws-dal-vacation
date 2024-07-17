@@ -29,6 +29,7 @@ export type Room = {
     userId: string;
     feedback: string;
   }>;
+  owner: string;
 };
 
 export type Reservation = {

@@ -7,15 +7,18 @@ import { ax } from "../lib/client";
 import { lambdas } from "../lib/constants";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../store/user";
 
 type RoomForm = Omit<Room, "id">;
 
 export const RoomForm = () => {
+  const { user } = useUserStore();
   const navigate = useNavigate();
   const form = useForm<RoomForm>({
     defaultValues: {
       type: RoomType.NORMAL,
       subtype: RoomSubType.DELUXE,
+      owner: user?.email,
     },
   });
 

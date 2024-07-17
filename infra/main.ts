@@ -103,6 +103,14 @@ class ServerlessProjectStack extends TerraformStack {
         dependsOn: [cognito.userPool],
         env: { USER_POOL_ID: cognito.userPool.id } as Record<string, string>,
       },
+      {
+        name: "get-user-by-token",
+        dependsOn: [cognito.userPoolClient, cognito.userPool],
+        env: {
+          USER_POOL_ID: cognito.userPool.id,
+          CLIENT_ID: cognito.userPoolClient.id,
+        },
+      },
     ];
 
     for (const lambda of lambdas) {
