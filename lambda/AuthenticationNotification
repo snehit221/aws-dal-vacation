@@ -12,28 +12,33 @@ sns_topic_arn = 'arn:aws:sns:us-east-1:813697295019:AuthenticationTopic'
 
 def lambda_handler(event, context):
     try:
-        # Extract the message from the SNS event
         for record in event['Records']:
-            sns_message = record['Sns']['Message']
-            message = json.loads(sns_message)
+            # Each record is a message from SQS
+            # Parse the JSON message
+            message_body = json.loads(record['body'])
             
-            user_name = message.get('user_name')
-            user_email = message.get('user_email')
-            request_type = message.get('request_type')
+            # Extract the relevant data
+            request_type = message_body.get('request_type')
+            user_email = message_body.get('user_email')
+            #user_name = message_body.get('user_name', 'User')  
             
-            logger.info(f"Received event for user: {user_name}, email: {user_email}, type: {request_type}")
+            # Log the received message
+            logger.info(f"Received message from SQS: {message_body}")
             
             # Handle the event based on request_type
             if request_type == 'registration':
                 subject = 'Registration Successful'
-                body_text = f"Hello {user_name},\n\nYou have successfully registered."
+                body_text = f"Hello,\n\nYou have successfully registered."
             elif request_type == 'login':
                 subject = 'Login Successful'
-                body_text = f"Hello {user_name},\n\nYou have successfully logged in."
+                body_text = f"Hello,\n\nYou have successfully logged in."
             else:
                 subject = 'Unknown Event'
                 body_text = 'An unknown event occurred.'
             
+            # before sending the email, apply the filter policy.
+            
+            apply_filter_policy_to_emails()
             # Send the notification email (you can use the publish method for testing)
             send_email_notification(user_email, subject, body_text)
         
@@ -49,16 +54,75 @@ def lambda_handler(event, context):
         }
 
 def send_email_notification(email, subject, body):
-    # Using SNS to send an email by publishing the messsage to the topic, the subscribed email will pick it up.
-    response = sns_client.publish(
-        TopicArn=sns_topic_arn,
-        Message=body,
-        Subject=subject,
-        MessageAttributes={
-            'email': {
-                'DataType': 'String',
-                'StringValue': email
+    # Using SNS to send an email by publishing the message to the topic, the subscribed email
+    # will pick it up.
+    try:
+        response = sns_client.publish(
+            TopicArn=sns_topic_arn,
+            Message=body,
+            Subject=subject,
+            MessageAttributes={
+                'email': {
+                    'DataType': 'String',
+                    'StringValue': email
+                }
             }
-        }
-    )
-    logger.info(f"Message published to SNS topic. Message ID: {response['MessageId']}")
+        )
+        logger.info(f"Message published to SNS topic. Message ID: {response['MessageId']}")
+    except Exception as e:
+        logger.error(f"Error sending email notification: {str(e)}")
+
+def apply_filter_policy_to_emails():
+    try:
+        logger.info('applying filter policy for emails...')
+        sqs_arn = 'arn:aws:sqs:us-east-1:813697295019:TestQueue'
+        
+        # List all subscriptions for the topic
+        next_token = None
+        while True:
+            if next_token:
+                response = sns_client.list_subscriptions_by_topic(
+                    TopicArn=sns_topic_arn,
+                    NextToken=next_token
+                )
+            else:
+                response = sns_client.list_subscriptions_by_topic(
+                    TopicArn=sns_topic_arn
+                )
+            
+            subscriptions = response.get('Subscriptions', [])
+            for subscription in subscriptions:
+                subscription_arn = subscription['SubscriptionArn']
+                
+                # Skip pending confirmations and the lambda itself
+                if subscription_arn == 'PendingConfirmation':
+                    continue
+                
+                # Get subscription attributes
+                attributes = sns_client.get_subscription_attributes(SubscriptionArn=subscription_arn)
+                endpoint = attributes['Attributes'].get('Endpoint')
+                
+                # Apply the selective filter policy
+                if endpoint == sqs_arn:
+                    # Apply the specific filter policy for the given SQS ARN
+                    filter_policy = json.dumps({
+                        'request_type': ['registration', 'login']
+                    })
+                else:
+                    # Apply the other filter policy
+                    filter_policy = json.dumps({
+                        'isSubscriptionFlow': ['true']
+                    })
+                
+                # Apply the filter policy
+                sns_client.set_subscription_attributes(
+                    SubscriptionArn=subscription_arn,
+                    AttributeName='FilterPolicy',
+                    AttributeValue=filter_policy
+                )
+            
+            next_token = response.get('NextToken')
+            if not next_token:
+                break
+    except Exception as e:
+        logger.error(f"Error applying filter policy: {str(e)}")
