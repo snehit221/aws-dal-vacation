@@ -35,6 +35,8 @@ import { Lexv2ModelsIntent } from "@cdktf/provider-aws/lib/lexv2models-intent";
 import { Lexv2ModelsBotLocale } from "@cdktf/provider-aws/lib/lexv2models-bot-locale";
 import { rooms } from "./utils/data";
 import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
+import { CognitoUserPool } from "@cdktf/provider-aws/lib/cognito-user-pool";
+import { CognitoUserPoolClient } from "@cdktf/provider-aws/lib/cognito-user-pool-client";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -59,6 +61,8 @@ class ServerlessProjectStack extends TerraformStack {
 
     const roomsBucket = this.RoomsImagesS3();
 
+    const cognito = this.Cognito();
+
     const lambdas = [
       { name: "list-rooms" },
       { name: "get-room-by-id" },
@@ -70,10 +74,39 @@ class ServerlessProjectStack extends TerraformStack {
       { name: "list-reservation-by-user" },
       { name: "post-feedback" },
       { name: "upload-room-image", dependsOn: [roomsBucket] },
+      { name: "get-security-question" },
+      {
+        name: "login",
+        dependsOn: [cognito.userPoolClient],
+        env: {
+          CLIENT_ID: cognito.userPoolClient.id,
+        } as Record<string, string>,
+      },
+      { name: "login-decryptcipher" },
+      { name: "set-security-question" },
+      {
+        name: "signup-verification",
+        dependsOn: [cognito.userPoolClient],
+        env: {
+          CLIENTID: cognito.userPoolClient.id,
+        } as Record<string, string>,
+      },
+      {
+        name: "signup",
+        dependsOn: [cognito.userPoolClient],
+        env: {
+          CLIENT_ID: cognito.userPoolClient.id,
+        } as Record<string, string>,
+      },
+      {
+        name: "store-key",
+        dependsOn: [cognito.userPool],
+        env: { USER_POOL_ID: cognito.userPool.id } as Record<string, string>,
+      },
     ];
 
     for (const lambda of lambdas) {
-      this.Lambda(lambda.name, lambda.dependsOn);
+      this.Lambda(lambda.name, lambda.dependsOn, lambda.env);
     }
   }
 
@@ -171,6 +204,30 @@ class ServerlessProjectStack extends TerraformStack {
         {
           name: "ReferenceCode",
           type: "N",
+        },
+      ],
+      ...defaultTableConf,
+    });
+
+    new DynamodbTable(this, "dynamodb-security-questions", {
+      name: "SecurityQuestions",
+      hashKey: "username",
+      attribute: [
+        {
+          name: "username",
+          type: "S",
+        },
+      ],
+      ...defaultTableConf,
+    });
+
+    new DynamodbTable(this, "dynamodb-user-data", {
+      name: "UserData",
+      hashKey: "username",
+      attribute: [
+        {
+          name: "username",
+          type: "S",
         },
       ],
       ...defaultTableConf,
@@ -372,7 +429,11 @@ class ServerlessProjectStack extends TerraformStack {
     });
   }
 
-  Lambda(name: string, dependsOn?: ITerraformDependable[]) {
+  Lambda(
+    name: string,
+    dependsOn?: ITerraformDependable[],
+    env?: Record<string, string>
+  ) {
     const asset = new TerraformAsset(this, `${name}-lambda-asset`, {
       path: path.resolve(getLambdaDirectory(), name),
       type: AssetType.ARCHIVE,
@@ -385,6 +446,7 @@ class ServerlessProjectStack extends TerraformStack {
       runtime: "nodejs20.x",
       filename: asset.path,
       handler: "index.handler",
+      environment: { variables: env },
     });
 
     const url = new LambdaFunctionUrl(this, `${name}-lambda-url`, {
@@ -403,6 +465,64 @@ class ServerlessProjectStack extends TerraformStack {
     });
 
     return url;
+  }
+
+  Cognito() {
+    const userPool = new CognitoUserPool(this, `cognito-user-pool`, {
+      name: "user",
+      schema: [
+        {
+          attributeDataType: "String",
+          name: "role",
+          mutable: true,
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+        {
+          attributeDataType: "String",
+          name: "signupDate",
+          mutable: true,
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+        {
+          attributeDataType: "String",
+          name: "email",
+          required: true,
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+        {
+          attributeDataType: "String",
+          name: "family_name",
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+        {
+          attributeDataType: "String",
+          name: "given_name",
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+        {
+          attributeDataType: "String",
+          name: "sub",
+          stringAttributeConstraints: { minLength: "1", maxLength: "1000" },
+        },
+      ],
+    });
+
+    const userPoolClient = new CognitoUserPoolClient(
+      this,
+      `cognito-user-pool-client`,
+      {
+        dependsOn: [userPool],
+        name: "user",
+        userPoolId: userPool.id,
+        explicitAuthFlows: [
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+          "ALLOW_USER_PASSWORD_AUTH",
+        ],
+      }
+    );
+
+    return { userPool, userPoolClient };
   }
 }
 

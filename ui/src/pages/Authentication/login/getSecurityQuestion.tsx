@@ -17,6 +17,7 @@ const GetSecurityQuestion = () => {
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
   } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState<string>("");
@@ -36,7 +37,7 @@ const GetSecurityQuestion = () => {
       const response = await axios.post(lambdas.getSecurityQuestion, {
         username,
       });
-      const { question } = response.data.body;
+      const { question } = response.data;
       console.log(question);
       setValue("question", question);
       setQuestion(question);
@@ -49,9 +50,11 @@ const GetSecurityQuestion = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post(lambdas.setSecurityQuestion, data);
-      navigate("/auth/decrypt-cipher");
-      console.log(response.data);
+      if (data.answer === getValues("answer")) {
+        navigate("/auth/decrypt-cipher");
+      } else {
+        alert("Incorrect answer!");
+      }
     } catch (error) {
       console.error("Error", error);
     }

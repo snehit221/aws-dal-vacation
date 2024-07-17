@@ -20,7 +20,7 @@ const caesarDecrypt = (str, key) => {
 };
 
 export const handler = async (event) => {
-  const { username, word, decryptedWord } = event;
+  const { username, word, decryptedWord } = JSON.parse(event.body);
   let response = "";
   let statusCode = 0;
   const tableName = "SecurityQuestions";

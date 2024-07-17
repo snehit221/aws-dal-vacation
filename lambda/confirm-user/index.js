@@ -8,7 +8,7 @@ const client = new CognitoIdentityProviderClient({
 });
 
 export const handler = async (event) => {
-  const { username } = event;
+  const { username } = JSON.parse(event.body);
 
   const params = {
     UserPoolId: process.env.USER_POOL_ID,

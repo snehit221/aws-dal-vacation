@@ -16,7 +16,9 @@ const DBclient = new DynamoDBClient({ region: process.env.REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(DBclient);
 
 export const handler = async (event) => {
-  const { username, password, email, firstName, lastName, role } = event;
+  const { username, password, email, firstName, lastName, role } = JSON.parse(
+    event.body
+  );
 
   if (!username || !password || !email || !firstName || !lastName) {
     return {
@@ -32,7 +34,7 @@ export const handler = async (event) => {
   const signUpParams = {
     ClientId: process.env.CLIENT_ID,
     Username: username,
-    Password: hashedPassword,
+    Password: password,
     UserAttributes: [
       {
         Name: "email",

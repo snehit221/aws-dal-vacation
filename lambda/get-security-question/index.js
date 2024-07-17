@@ -5,7 +5,7 @@ const client = new DynamoDBClient({ region: process.env.REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event) => {
-  const { username } = event;
+  const { username } = JSON.parse(event.body);
 
   const params = {
     TableName: "SecurityQuestions",

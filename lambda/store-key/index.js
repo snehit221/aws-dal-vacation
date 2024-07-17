@@ -3,7 +3,6 @@ import {
   GetItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import axios from "axios";
 import {
   CognitoIdentityProviderClient,
   AdminConfirmSignUpCommand,
@@ -15,7 +14,7 @@ const confirmClient = new CognitoIdentityProviderClient({
 });
 
 export const handler = async (event) => {
-  const { username, key } = event;
+  const { username, key } = JSON.parse(event.body);
 
   if (!username || !key) {
     return {
