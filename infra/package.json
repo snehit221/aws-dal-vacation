@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@cdktf/provider-aws": "^19.23.0",
+    "@cdktf/provider-google": "^13.27.0",
     "cdktf": "^0.20.7",
     "constructs": "^10.3.0",
     "mime-types": "^2.1.35"

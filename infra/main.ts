@@ -37,10 +37,16 @@ import { rooms } from "./utils/data";
 import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
 import { CognitoUserPool } from "@cdktf/provider-aws/lib/cognito-user-pool";
 import { CognitoUserPoolClient } from "@cdktf/provider-aws/lib/cognito-user-pool-client";
+import { GoogleProvider } from "@cdktf/provider-google/lib/provider";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
+
+    new GoogleProvider(this, "gcp", {
+      project: "serverless-lab-2-mayur",
+      billingProject: "serverless-lab-2-mayur",
+    });
 
     // define resources here
     new AwsProvider(this, "AWS", {
@@ -110,6 +116,9 @@ class ServerlessProjectStack extends TerraformStack {
           USER_POOL_ID: cognito.userPool.id,
           CLIENT_ID: cognito.userPoolClient.id,
         },
+      },
+      {
+        name: "dialogflow",
       },
     ];
 

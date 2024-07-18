@@ -239,7 +239,7 @@ export const RoomView = () => {
               ${room?.price} per night, you selected {totalDays} nights
             </span>
           </div>
-          {user?.role !== "admin" && (
+          {user?.role !== "admin" && !reservationByRoom && (
             <button
               disabled={reservationMutation.isPending || !userId}
               type="submit"
