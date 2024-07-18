@@ -19,6 +19,7 @@ import ThirdFactor from "./pages/Authentication/signup/thirdFactor";
 import GetSecurityQuestion from "./pages/Authentication/login/getSecurityQuestion";
 import LoginCipher from "./pages/Authentication/login/loginCipher";
 import SecondFactor from "./pages/Authentication/signup/secondFactor";
+import { DialogflowChatbot } from "./components/dialogflow";
 
 const router = createBrowserRouter([
   {
@@ -83,6 +84,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Toaster />
       <UserContextProvider>
         <RouterProvider router={router} />
+        <DialogflowChatbot />
       </UserContextProvider>
     </QueryClientProvider>
   </React.StrictMode>
