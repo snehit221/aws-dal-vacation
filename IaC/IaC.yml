@@ -2,26 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Resources:
   # SQS Queue
-  RegistrationNotificationQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: RegistrationNotificationQ
-      VisibilityTimeout: 180
-
-  LoginNotificationQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: LoginNotificationQ
-      VisibilityTimeout: 180
-
-  BookingSuccessNotificationQ:
+  BookingNotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: BookingSuccessNotificationQ
       VisibilityTimeout: 180
 
-  BookingFailureNotificationQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: BookingFailureNotificationQ
-      VisibilityTimeout: 180
