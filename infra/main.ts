@@ -120,6 +120,12 @@ class ServerlessProjectStack extends TerraformStack {
       {
         name: "dialogflow",
       },
+      {
+        name: "analytics-dashboard",
+      },
+      {
+        name: "sentiment-analysis",
+      },
     ];
 
     for (const lambda of lambdas) {
@@ -248,6 +254,8 @@ class ServerlessProjectStack extends TerraformStack {
         },
       ],
       ...defaultTableConf,
+      streamEnabled: true,
+      streamViewType: "NEW_IMAGE",
     });
   }
 

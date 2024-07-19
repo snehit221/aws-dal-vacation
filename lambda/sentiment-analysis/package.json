@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@google-cloud/language": "^6.4.0"
+  }
+}
