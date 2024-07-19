@@ -37,10 +37,10 @@ exports.handler = async (event) => {
 async function appendToGoogleSheet(values) {
     // Define the column order as per your sheet
     const columnOrder = [
-        'userID',
+        'username',
         'email',
         'firstName',
-        'lastloginDate',
+        'Lastlogindate',
         'lastName',
         'password',
         'role',
