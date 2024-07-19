@@ -1,4 +1,5 @@
 export const lambdas = {
+  getUserByToken: import.meta.env.VITE_GET_USER_BY_TOKEN,
   listRooms: import.meta.env.VITE_LIST_ROOMS_LAMBDA,
   getRoom: import.meta.env.VITE_GET_ROOM_LAMBDA,
   addRoom: import.meta.env.VITE_ADD_ROOM_LAMBDA,
@@ -16,5 +17,5 @@ export const lambdas = {
   setSecurityQuestion: import.meta.env.VITE_SET_SECURITY_QUESTION,
   getSecurityQuestion: import.meta.env.VITE_GET_SECURITY_QUESTION,
   storeSecurityKey: import.meta.env.VITE_STORE_KEY,
-  decryptCipher:import.meta.env.VITE_DECRYPT_CIPHER
+  decryptCipher: import.meta.env.VITE_DECRYPT_CIPHER,
 };

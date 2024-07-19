@@ -22,16 +22,16 @@ type ReservationProps = {
 };
 
 export const Reservations = ({ open, setOpen }: ReservationProps) => {
-  const userId = useUserStore();
+  const { user } = useUserStore();
   const navigate = useNavigate();
 
   const reservationsByUserQuery = useQuery({
-    queryKey: ["reservations", userId],
+    queryKey: ["reservations", user?.email],
     queryFn: () =>
       ax
-        .get(`${lambdas.listReservationsByRoom}?userId=${userId}`)
+        .get(`${lambdas.listReservationsByRoom}?userId=${user?.email}`)
         .then((res) => (res.data?.reservations as ReservationWithRoom[]) || []),
-    enabled: open && !!userId,
+    enabled: open && !!user?.email,
   });
 
   let Content: ReactNode;

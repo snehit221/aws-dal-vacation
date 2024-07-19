@@ -1,7 +1,7 @@
 import { FaHotel, FaPaypal, FaMap } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
 import { ReactNode, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -17,8 +17,10 @@ import { Loading } from "../components/loading";
 import { useUserStore } from "../store/user";
 
 export const RoomView = () => {
-  const userId = useUserStore();
+  const { user } = useUserStore();
+  const userId = user?.email;
   const { roomId } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: room,
@@ -142,6 +144,11 @@ export const RoomView = () => {
 
   return (
     <>
+      {room?.owner === userId && (
+        <div className="mb-5">
+          <button onClick={() => navigate(`/room/${roomId}/edit`)}>Edit</button>
+        </div>
+      )}
       {ReservationWidget}
       <span className="font-medium text-gray-500 hover:text-gray-600 mb-2 flex gap-3 items-center">
         <FaHotel />
@@ -232,29 +239,33 @@ export const RoomView = () => {
               ${room?.price} per night, you selected {totalDays} nights
             </span>
           </div>
-          <button
-            disabled={reservationMutation.isPending}
-            type="submit"
-            className="primary flex items-center gap-2"
-            onClick={() =>
-              reservationMutation.mutate({
-                checkIn: startDate.toDate(),
-                checkOut: endDate.toDate(),
-                paid: (room?.price || 0) * totalDays,
-                roomId,
-                userId,
-                guests,
-              })
-            }
-          >
-            {reservationMutation.isPending && <h2>Reserving...</h2>}
-            {!reservationMutation.isPending && (
-              <>
-                <FaPaypal />
-                Reserve for ${(room?.price || 0) * totalDays}
-              </>
-            )}
-          </button>
+          {user?.role !== "admin" && !reservationByRoom && (
+            <button
+              disabled={reservationMutation.isPending || !userId}
+              type="submit"
+              className="primary flex items-center gap-2"
+              onClick={() =>
+                userId &&
+                reservationMutation.mutate({
+                  checkIn: startDate.toDate(),
+                  checkOut: endDate.toDate(),
+                  paid: (room?.price || 0) * totalDays,
+                  roomId,
+                  userId,
+                  guests,
+                })
+              }
+            >
+              {reservationMutation.isPending && <h2>Reserving...</h2>}
+              {!reservationMutation.isPending && userId && (
+                <>
+                  <FaPaypal />
+                  Reserve for ${(room?.price || 0) * totalDays}
+                </>
+              )}
+              {!userId && "Login to reserve"}
+            </button>
+          )}
         </div>
       </section>
     </>

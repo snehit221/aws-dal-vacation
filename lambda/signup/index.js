@@ -4,13 +4,21 @@ import {
   AdminConfirmSignUpCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import axios from "axios";
+import bcrypt from "bcryptjs";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new CognitoIdentityProviderClient({
   region: process.env.REGION,
 });
 
+const DBclient = new DynamoDBClient({ region: process.env.REGION });
+const ddbDocClient = DynamoDBDocumentClient.from(DBclient);
+
 export const handler = async (event) => {
-  const { username, password, email, firstName, lastName, role } = event;
+  const { username, password, email, firstName, lastName, role } = JSON.parse(
+    event.body
+  );
 
   if (!username || !password || !email || !firstName || !lastName) {
     return {
@@ -19,6 +27,9 @@ export const handler = async (event) => {
     };
   }
   const signupDate = new Date().toISOString();
+
+  const saltRounds = 2;
+  const hashedPassword = await bcrypt.hashSync(password, saltRounds);
 
   const signUpParams = {
     ClientId: process.env.CLIENT_ID,
@@ -48,24 +59,24 @@ export const handler = async (event) => {
     ],
   };
 
+  const DynamoDBparams = {
+    TableName: "UserData",
+    Item: {
+      username: username,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      password: hashedPassword,
+      role: role,
+      signupDate: signupDate,
+    },
+  };
+
   try {
     const command = new SignUpCommand(signUpParams);
-    let response = await client.send(command);
-
-    //SNS TOPIC
-    // response = await axios.post('https://localhost.execute-api.us-east-1.amazonaws.com/v1/subscribe-email', { username });
-    //     console.log(response);
-
-    response = await axios.post(lambdas.storeUserData, {
-      username,
-      password,
-      email,
-      firstName,
-      lastName,
-      role,
-      signupDate,
-    });
-    console.log(response);
+    await client.send(command);
+    const DBcommand = new PutCommand(DynamoDBparams);
+    await ddbDocClient.send(DBcommand);
 
     return {
       statusCode: 200,

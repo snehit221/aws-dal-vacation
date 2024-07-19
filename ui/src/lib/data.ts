@@ -1,6 +1,6 @@
 import { Room, RoomSubType, RoomType } from "../lib/dto";
 
-export const rooms: Room[] = [
+export const rooms: Partial<Room>[] = [
   {
     id: "1",
     available: false,

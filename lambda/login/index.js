@@ -10,7 +10,7 @@ const cognitoClient = new CognitoIdentityProviderClient({
 const dynamoDBClient = new DynamoDBClient({ region: process.env.REGION });
 
 export const handler = async (event) => {
-  const { username, password } = event;
+  const { username, password } = JSON.parse(event.body);
 
   const clientId = process.env.CLIENT_ID;
 

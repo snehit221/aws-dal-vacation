@@ -9,6 +9,16 @@ exports.handler = async (event) => {
   try {
     const room = JSON.parse(event.body);
 
+    if (!room?.owner) {
+      return {
+        statusCode: 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: "Room owner required" }),
+      };
+    }
+
     // Generate a unique ID for the room
     const id = uuidv4();
 
