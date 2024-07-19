@@ -10,8 +10,18 @@ interface FormData {
   decryptedWord: string;
 }
 
-// Using single word in array for testing purposes, add more words later
-const sampleWords = ["test"];
+const sampleWords = [
+  "test",
+  "hello",
+  "world",
+  "cipher",
+  "security",
+  "auth",
+  "factor",
+  "third",
+  "encryption",
+  "decryption",
+];
 
 const LoginCipher = () => {
   const navigate = useNavigate();

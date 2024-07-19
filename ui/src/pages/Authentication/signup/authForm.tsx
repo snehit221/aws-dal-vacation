@@ -201,7 +201,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             {isSignup && (
               <div>
                 <label className="text-12 mb-2 ml-1 mt-4 block font-medium text-slate-800">
-                  Security Question
+                  Select Role
                 </label>
                 <select
                   className="block w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-black placeholder:text-gray-400 focus:border-green-500 sm:text-sm"
