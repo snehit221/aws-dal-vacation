@@ -77,6 +77,25 @@ export const handler = async (event) => {
     await client.send(command);
     const DBcommand = new PutCommand(DynamoDBparams);
     await ddbDocClient.send(DBcommand);
+    let response = await client.send(command);
+
+    //SNS TOPIC Subscription flow for Notifications
+    response = await axios.post('https://htlodukyi5.execute-api.us-east-1.amazonaws.com/prod/signup-subscribe', {
+      email: email
+    });
+
+    console.log("SNS TOPIC  RESP SIGNUP**** " + response.data);
+
+    response = await axios.post(lambdas.storeUserData, {
+      username,
+      password,
+      email,
+      firstName,
+      lastName,
+      role,
+      signupDate,
+    });
+    console.log(response);
 
     return {
       statusCode: 200,
