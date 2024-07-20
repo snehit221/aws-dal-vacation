@@ -126,6 +126,9 @@ class ServerlessProjectStack extends TerraformStack {
       {
         name: "sentiment-analysis",
       },
+      {
+        name: "raise-concern",
+      },
     ];
 
     for (const lambda of lambdas) {

@@ -57,7 +57,17 @@ export const Layout = () => {
             </button>
           </>
         )}
-        {!!user?.email && <button onClick={logout}>Log out</button>}
+        {!!user?.email && (
+          <>
+            <h4
+              className="text-xs font-semibold uppercase mr-5 flex items-center gap-2 cursor-pointer hover:text-indigo-500"
+              onClick={() => navigate("/support")}
+            >
+              Support
+            </h4>
+            <button onClick={logout}>Log out</button>
+          </>
+        )}
       </nav>
 
       {/* BODY */}

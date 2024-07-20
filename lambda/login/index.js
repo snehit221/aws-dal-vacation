@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
@@ -46,9 +47,12 @@ export const handler = async (event) => {
 
     // SNS Notification flow for email - post login
     const email = authResponse.AuthenticationResult.Email; // Assuming the email is part of the auth response
-    const apiResponse = await axios.post('https://htlodukyi5.execute-api.us-east-1.amazonaws.com/prod/login-publish', {
-      email: email
-    });
+    const apiResponse = await axios.post(
+      "https://htlodukyi5.execute-api.us-east-1.amazonaws.com/prod/login-publish",
+      {
+        email: email,
+      }
+    );
 
     console.log("API CALL RESPONSE LOGIN**** " + apiResponse.data);
 

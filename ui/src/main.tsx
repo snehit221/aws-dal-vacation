@@ -20,6 +20,7 @@ import GetSecurityQuestion from "./pages/Authentication/login/getSecurityQuestio
 import LoginCipher from "./pages/Authentication/login/loginCipher";
 import SecondFactor from "./pages/Authentication/signup/secondFactor";
 import { DialogflowChatbot } from "./components/dialogflow";
+import { Support } from "./pages/support";
 
 const router = createBrowserRouter([
   {
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
       {
         path: "/room/:roomId/edit",
         Component: EditRoom,
+      },
+      {
+        path: "/support",
+        Component: Support,
       },
     ],
   },
