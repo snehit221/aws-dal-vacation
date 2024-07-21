@@ -23,7 +23,10 @@ import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-
 import { S3Object } from "@cdktf/provider-aws/lib/s3-object";
 import { S3BucketOwnershipControls } from "@cdktf/provider-aws/lib/s3-bucket-ownership-controls";
 import { S3BucketPublicAccessBlock } from "@cdktf/provider-aws/lib/s3-bucket-public-access-block";
-import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
+import {
+  LambdaFunction,
+  LambdaFunctionConfig,
+} from "@cdktf/provider-aws/lib/lambda-function";
 import { LambdaFunctionUrl } from "@cdktf/provider-aws/lib/lambda-function-url";
 import {
   DynamodbTable,
@@ -38,6 +41,9 @@ import { DynamodbTableItem } from "@cdktf/provider-aws/lib/dynamodb-table-item";
 import { CognitoUserPool } from "@cdktf/provider-aws/lib/cognito-user-pool";
 import { CognitoUserPoolClient } from "@cdktf/provider-aws/lib/cognito-user-pool-client";
 import { GoogleProvider } from "@cdktf/provider-google/lib/provider";
+import { LambdaEventSourceMapping } from "@cdktf/provider-aws/lib/lambda-event-source-mapping";
+import { SqsQueue } from "@cdktf/provider-aws/lib/sqs-queue";
+import { SnsTopic } from "@cdktf/provider-aws/lib/sns-topic";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -59,37 +65,55 @@ class ServerlessProjectStack extends TerraformStack {
       region: "us-east-1",
     });
 
-    // this.StaticWebsite();
-
     // this.HelloWorldLambda();
 
-    this.DynamoDB();
+    const { dynamodbUserDataTable } = this.DynamoDB();
 
     const roomsBucket = this.RoomsImagesS3();
 
     const cognito = this.Cognito();
 
-    const lambdas = [
-      { name: "list-rooms" },
-      { name: "get-room-by-id" },
-      { name: "add-room" },
-      { name: "edit-room" },
-      { name: "delete-room" },
-      { name: "reserve-room" },
-      { name: "reserved-dates-by-room" },
-      { name: "list-reservation-by-user" },
-      { name: "post-feedback" },
-      { name: "upload-room-image", dependsOn: [roomsBucket] },
-      { name: "get-security-question" },
+    const bookingNotificationQueue = new SqsQueue(
+      this,
+      "booking-notification-queue",
       {
-        name: "login",
-        dependsOn: [cognito.userPoolClient],
-        env: {
-          CLIENT_ID: cognito.userPoolClient.id,
-        } as Record<string, string>,
+        name: "BookingNotificationQueue",
+      }
+    );
+
+    const authenticationTopic = new SnsTopic(this, "user-topic", {
+      name: "authentication",
+    });
+
+    const lambdas = [
+      { name: "list-rooms", frontendEnv: "VITE_LIST_ROOMS_LAMBDA" },
+      { name: "get-room-by-id", frontendEnv: "VITE_GET_ROOM_LAMBDA" },
+      { name: "add-room", frontendEnv: "VITE_ADD_ROOM_LAMBDA" },
+      { name: "edit-room", frontendEnv: "VITE_EDIT_ROOM_LAMBDA" },
+      { name: "delete-room", frontendEnv: "VITE_DELETE_ROOM_LAMBDA" },
+      {
+        name: "reserved-dates-by-room",
+        frontendEnv: "VITE_RESERVED_DATES_BY_ROOM_LAMBDA",
       },
-      { name: "login-decryptcipher" },
-      { name: "set-security-question" },
+      {
+        name: "list-reservation-by-user",
+        frontendEnv: "VITE_LIST_RESERVATIONS_BY_USER_LAMBDA",
+      },
+      { name: "post-feedback", frontendEnv: "VITE_POST_FEEDBACK_LAMBDA" },
+      {
+        name: "upload-room-image",
+        dependsOn: [roomsBucket],
+        frontendEnv: "VITE_UPLOAD_ROOM_IMAGE_LAMBDA",
+      },
+      {
+        name: "get-security-question",
+        frontendEnv: "VITE_GET_SECURITY_QUESTION",
+      },
+      { name: "login-decryptcipher", frontendEnv: "VITE_DECRYPT_CIPHER" },
+      {
+        name: "set-security-question",
+        frontendEnv: "VITE_SET_SECURITY_QUESTION",
+      },
       {
         name: "signup-verification",
         dependsOn: [cognito.userPoolClient],
@@ -98,16 +122,10 @@ class ServerlessProjectStack extends TerraformStack {
         } as Record<string, string>,
       },
       {
-        name: "signup",
-        dependsOn: [cognito.userPoolClient],
-        env: {
-          CLIENT_ID: cognito.userPoolClient.id,
-        } as Record<string, string>,
-      },
-      {
         name: "store-key",
         dependsOn: [cognito.userPool],
         env: { USER_POOL_ID: cognito.userPool.id } as Record<string, string>,
+        frontendEnv: "VITE_STORE_KEY",
       },
       {
         name: "get-user-by-token",
@@ -116,6 +134,7 @@ class ServerlessProjectStack extends TerraformStack {
           USER_POOL_ID: cognito.userPool.id,
           CLIENT_ID: cognito.userPoolClient.id,
         },
+        frontendEnv: "VITE_GET_USER_BY_TOKEN",
       },
       {
         name: "dialogflow",
@@ -128,12 +147,149 @@ class ServerlessProjectStack extends TerraformStack {
       },
       {
         name: "raise-concern",
+        frontendEnv: "VITE_RAISE_CONCERN",
+      },
+      {
+        name: "signup-notification",
+        runtime: "python3.11",
+        handler: "index.lambda_handler",
+        dependsOn: [authenticationTopic],
+        env: {
+          AUTHENTICATION_TOPIC_ARN: authenticationTopic.arn,
+        },
+      },
+      {
+        name: "login-notification",
+        runtime: "python3.11",
+        handler: "index.lambda_handler",
+        dependsOn: [authenticationTopic],
+        env: {
+          AUTHENTICATION_TOPIC_ARN: authenticationTopic.arn,
+        },
+      },
+      {
+        name: "reserve-room-notification",
+        runtime: "python3.11",
+        handler: "index.lambda_handler",
+        dependsOn: [authenticationTopic],
+        env: {
+          AUTHENTICATION_TOPIC_ARN: authenticationTopic.arn,
+        },
       },
     ];
 
+    const lambdaMappings: Record<
+      string,
+      {
+        lambda: LambdaFunction;
+        url: LambdaFunctionUrl;
+      }
+    > = {};
+
     for (const lambda of lambdas) {
-      this.Lambda(lambda.name, lambda.dependsOn, lambda.env);
+      let obj: Partial<LambdaFunctionConfig> = {};
+
+      if (lambda?.env) {
+        obj = {
+          ...obj,
+          environment: {
+            variables: lambda.env as Record<string, string>,
+          },
+        };
+      }
+
+      if (lambda?.runtime) {
+        obj = {
+          ...obj,
+          runtime: lambda.runtime,
+        };
+      }
+
+      if (lambda?.handler) {
+        obj = {
+          ...obj,
+          handler: lambda.handler,
+        };
+      }
+
+      obj = {
+        ...obj,
+        timeout: 15,
+      };
+
+      lambdaMappings[lambda.name] = this.Lambda(
+        lambda.name,
+        lambda.dependsOn,
+        obj,
+        lambda?.frontendEnv
+      );
     }
+
+    this.Lambda(
+      "login",
+      [cognito.userPoolClient, lambdaMappings["login-notification"].url],
+      {
+        environment: {
+          variables: {
+            LOGIN_NOTIFICATION_LAMBDA_URL:
+              lambdaMappings["login-notification"].url.functionUrl,
+            USER_POOL_ID: cognito.userPool.id,
+            CLIENT_ID: cognito.userPoolClient.id,
+          },
+        },
+      },
+      "VITE_SIGNIN_LAMBDA"
+    );
+
+    this.Lambda(
+      "signup",
+      [cognito.userPoolClient, lambdaMappings["signup-notification"].url],
+      {
+        environment: {
+          variables: {
+            SIGNUP_NOTIFICATION_LAMBDA_URL:
+              lambdaMappings["signup-notification"].url.functionUrl,
+            CLIENT_ID: cognito.userPoolClient.id,
+          },
+        },
+      },
+      "VITE_SIGNUP_LAMBDA"
+    );
+
+    this.Lambda(
+      "reserve-room",
+      [cognito.userPoolClient],
+      {
+        environment: {
+          variables: {
+            SQS_QUEUE_URL:
+              lambdaMappings["reserve-room-notification"].url.functionUrl,
+          },
+        },
+      },
+      "VITE_RESERVE_ROOM_LAMBDA"
+    );
+
+    new LambdaEventSourceMapping(this, "user-data-trigger", {
+      dependsOn: [
+        dynamodbUserDataTable,
+        lambdaMappings["analytics-dashboard"].lambda,
+      ],
+      functionName: lambdaMappings["analytics-dashboard"].lambda.arn,
+      eventSourceArn: dynamodbUserDataTable.streamArn,
+      startingPosition: "LATEST",
+    });
+
+    new LambdaEventSourceMapping(this, "reserve-room-notification-trigger", {
+      dependsOn: [
+        bookingNotificationQueue,
+        lambdaMappings["reserve-room-notification"].lambda,
+      ],
+      eventSourceArn: bookingNotificationQueue.arn,
+      functionName: lambdaMappings["reserve-room-notification"].lambda.arn,
+    });
+
+    this.StaticWebsite();
   }
 
   Lex(lambda: LambdaFunction) {
@@ -247,19 +403,25 @@ class ServerlessProjectStack extends TerraformStack {
       ...defaultTableConf,
     });
 
-    new DynamodbTable(this, "dynamodb-user-data", {
-      name: "UserData",
-      hashKey: "username",
-      attribute: [
-        {
-          name: "username",
-          type: "S",
-        },
-      ],
-      ...defaultTableConf,
-      streamEnabled: true,
-      streamViewType: "NEW_IMAGE",
-    });
+    const dynamodbUserDataTable = new DynamodbTable(
+      this,
+      "dynamodb-user-data",
+      {
+        name: "UserData",
+        hashKey: "username",
+        attribute: [
+          {
+            name: "username",
+            type: "S",
+          },
+        ],
+        ...defaultTableConf,
+        streamEnabled: true,
+        streamViewType: "NEW_IMAGE",
+      }
+    );
+
+    return { dynamodbUserDataTable };
   }
 
   RoomsImagesS3() {
@@ -460,7 +622,8 @@ class ServerlessProjectStack extends TerraformStack {
   Lambda(
     name: string,
     dependsOn?: ITerraformDependable[],
-    env?: Record<string, string>
+    config?: Partial<LambdaFunctionConfig>,
+    frontendEnv?: string
   ) {
     const asset = new TerraformAsset(this, `${name}-lambda-asset`, {
       path: path.resolve(getLambdaDirectory(), name),
@@ -474,7 +637,8 @@ class ServerlessProjectStack extends TerraformStack {
       runtime: "nodejs20.x",
       filename: asset.path,
       handler: "index.handler",
-      environment: { variables: env },
+      // environment: { variables: env },
+      ...config,
     });
 
     const url = new LambdaFunctionUrl(this, `${name}-lambda-url`, {
@@ -488,11 +652,11 @@ class ServerlessProjectStack extends TerraformStack {
       },
     });
 
-    new TerraformOutput(this, `${name}-lambda-url-display`, {
+    new TerraformOutput(this, frontendEnv || `${name}-lambda-url-display`, {
       value: url.functionUrl,
     });
 
-    return url;
+    return { lambda, url };
   }
 
   Cognito() {

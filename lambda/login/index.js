@@ -4,6 +4,13 @@ import {
   InitiateAuthCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { CognitoJwtVerifier } from "aws-jwt-verify";
+
+const verifier = CognitoJwtVerifier.create({
+  userPoolId: process.env.USER_POOL_ID,
+  tokenUse: "id", // Use 'id' for idToken and 'access' for accessToken
+  clientId: process.env.CLIENT_ID,
+});
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: process.env.REGION,
@@ -45,12 +52,14 @@ export const handler = async (event) => {
     const updateCommand = new UpdateItemCommand(updateParams);
     await dynamoDBClient.send(updateCommand);
 
-    // SNS Notification flow for email - post login
-    const email = authResponse.AuthenticationResult.Email; // Assuming the email is part of the auth response
+    const token = authResponse.AuthenticationResult.IdToken;
+
+    const payload = await verifier.verify(token);
+
     const apiResponse = await axios.post(
-      "https://htlodukyi5.execute-api.us-east-1.amazonaws.com/prod/login-publish",
+      process.env.LOGIN_NOTIFICATION_LAMBDA_URL,
       {
-        email: email,
+        email: payload.email,
       }
     );
 
