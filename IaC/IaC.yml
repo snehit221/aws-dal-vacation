@@ -5,6 +5,6 @@ Resources:
   BookingNotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: BookingSuccessNotificationQ
+      QueueName: BookingNotificationQueue
       VisibilityTimeout: 180
 
