@@ -144,7 +144,7 @@ export const RoomView = () => {
 
   return (
     <>
-      {room?.owner === userId && (
+      {!!userId && room?.owner === user?.email && (
         <div className="mb-5">
           <button onClick={() => navigate(`/room/${roomId}/edit`)}>Edit</button>
         </div>
