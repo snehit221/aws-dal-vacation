@@ -8,6 +8,7 @@ sns_client = boto3.client('sns')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def lambda_handler(event, context):
     # The ARN of the SNS topic
     topic_arn = 'arn:aws:sns:us-east-1:813697295019:AuthenticationNotificationTopic'
@@ -20,16 +21,11 @@ def lambda_handler(event, context):
     except Exception as error:
         message = f"Invalid email received: {error}"
         return {
-        'statusCode': 400,
-        'body': json.dumps(message)
+            'statusCode': 400,
+            'body': json.dumps(message)
         }
-
-    
-
-        
-    
     request_type = "registration"
-    
+
     # Subscription filter policy (only applies to registration requests)
     filter_policy = None
     if request_type == "registration":
@@ -43,7 +39,8 @@ def lambda_handler(event, context):
             TopicArn=topic_arn,
             Protocol='email',
             Endpoint=user_email,
-            Attributes={'FilterPolicy': json.dumps(filter_policy) if filter_policy else None}
+            Attributes={'FilterPolicy': json.dumps(
+                filter_policy) if filter_policy else None}
         )
         subscription_arn = response['SubscriptionArn']
         message = f"Successfully created SNS subscription for {user_email} (ARN: {subscription_arn})"
@@ -54,4 +51,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps(message)
     }
-
