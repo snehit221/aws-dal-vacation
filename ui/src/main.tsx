@@ -71,15 +71,15 @@ const router = createBrowserRouter([
         path: "/support",
         Component: Support,
       },
+      {
+        path: "/feedback",
+        element: <Feedback />,
+      },
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
+      },
     ],
-  },
-  {
-    path: "/dashboard",
-    element: <Dashboard />,
-  },
-  {
-    path: "/feedback",
-    element: <Feedback />,
   },
 ]);
 

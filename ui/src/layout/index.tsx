@@ -38,6 +38,20 @@ export const Layout = () => {
             Add Property
           </h4>
         )}
+        {user?.role === "admin" && (
+          <h4
+            className="text-xs font-semibold uppercase mr-5 flex items-center gap-2 cursor-pointer hover:text-indigo-500"
+            onClick={() => navigate("/dashboard")}
+          >
+            Admin
+          </h4>
+        )}
+        <h4
+          className="text-xs font-semibold uppercase mr-5 flex items-center gap-2 cursor-pointer hover:text-indigo-500"
+          onClick={() => navigate("/feedback")}
+        >
+          Feedbacks
+        </h4>
         {!user?.email && (
           <>
             {" "}
@@ -50,7 +64,7 @@ export const Layout = () => {
             </button>
             <button
               type="button"
-              className="primary ml-2"
+              className="primary mx-2"
               onClick={() => navigate(`/auth/signup`)}
             >
               Sign Up

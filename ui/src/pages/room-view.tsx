@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { firstLetterCapital, inputDateFormat } from "../lib/utils";
 import { ReactNode, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ax } from "../lib/client";
+import { ax, queryClient } from "../lib/client";
 import { lambdas } from "../lib/constants";
 import {
   Reservation,
@@ -130,7 +130,11 @@ export const RoomView = () => {
             />
             <button
               className="primary"
-              onClick={() => postFeedbackMutation.mutate(feedback)}
+              onClick={() =>
+                postFeedbackMutation.mutate(feedback, {
+                  onSuccess: () => queryClient.refetchQueries(),
+                })
+              }
             >
               Submit
             </button>
@@ -246,14 +250,19 @@ export const RoomView = () => {
               className="primary flex items-center gap-2"
               onClick={() =>
                 userId &&
-                reservationMutation.mutate({
-                  checkIn: startDate.toDate(),
-                  checkOut: endDate.toDate(),
-                  paid: (room?.price || 0) * totalDays,
-                  roomId,
-                  userId,
-                  guests,
-                })
+                reservationMutation.mutate(
+                  {
+                    checkIn: startDate.toDate(),
+                    checkOut: endDate.toDate(),
+                    paid: (room?.price || 0) * totalDays,
+                    roomId,
+                    userId,
+                    guests,
+                  },
+                  {
+                    onSuccess: () => queryClient.refetchQueries(),
+                  }
+                )
               }
             >
               {reservationMutation.isPending && <h2>Reserving...</h2>}
