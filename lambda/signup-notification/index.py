@@ -1,7 +1,6 @@
 import json
 import boto3
 import logging
-import os
 
 sns_client = boto3.client('sns')
 
@@ -23,14 +22,14 @@ def lambda_handler(e, context):
         user_email = event['email']
     
     except Exception as error:
-        print(error)
         message = f"Invalid email received: {error}"
         return {
             'statusCode': 400,
             'body': json.dumps(message)
         }
-    request_type = "registration"
 
+    request_type = "registration"
+    
     # Subscription filter policy (only applies to registration requests)
     filter_policy = None
     if request_type == "registration":
@@ -40,21 +39,67 @@ def lambda_handler(e, context):
 
     # Create SNS subscription
     try:
-        response = sns_client.subscribe(
+        if not is_user_confirmed_subscribed(sns_client, topic_arn, user_email):
+            
+            response = sns_client.subscribe(
+                TopicArn=topic_arn,
+                Protocol='email',
+                Endpoint=user_email,
+                Attributes={'FilterPolicy': json.dumps(filter_policy) if filter_policy else None}
+            )
+            subscription_arn = response['SubscriptionArn']
+            message = f"Successfully created SNS subscription for {user_email} (ARN: {subscription_arn})"
+        
+        else:
+            # Message to be published when user is subsribed
+            
+            regis_message = "Hi, \n You have successfully registered."
+            
+            # Attributes that match the filter policy
+            message_attributes = {
+            'user_email': {
+                'DataType': 'String',
+                'StringValue': event['email']
+                }
+            }
+        
+            response = sns_client.publish(
             TopicArn=topic_arn,
-            Protocol='email',
-            Endpoint=user_email,
-            Attributes={'FilterPolicy': json.dumps(
-                filter_policy) if filter_policy else None}
-        )
-        subscription_arn = response['SubscriptionArn']
-        message = f"Successfully created SNS subscription for {user_email} (ARN: {subscription_arn})"
+            Message=regis_message,
+            MessageAttributes=message_attributes
+            )
+        
+            return {
+                'statusCode': 200,
+                'body': json.dumps(f"Message published for new registration for topic {topic_arn}")
+            }   
+            
     except Exception as error:
-        print(error)
         message = f"Error creating SNS subscription: {error}"
 
-    print(message)
     return {
         'statusCode': 200,
         'body': json.dumps(message)
     }
+
+'''
+function to check whether user is already subsribed with confirmed status or not
+'''
+def is_user_confirmed_subscribed(sns_client, topic_arn, user_email):
+
+    try:
+        paginator = sns_client.get_paginator('list_subscriptions_by_topic')
+        for page in paginator.paginate(TopicArn=topic_arn):
+            subscriptions = page.get('Subscriptions', [])
+
+            for subscription in subscriptions:
+                if subscription['Endpoint'] == user_email:
+                    subscription_arn = subscription['SubscriptionArn']
+                    attr_response = sns_client.get_subscription_attributes(SubscriptionArn=subscription_arn)
+                    attributes = attr_response['Attributes']
+                    if attributes.get('PendingConfirmation') == 'false':
+                        return True  # Subscription is confirmed
+        return False  # Subscription not found or not confirmed
+    except Exception as e:
+        print(f"Error checking subscription status: {e}")
+        return False
