@@ -238,6 +238,7 @@ class ServerlessProjectStack extends TerraformStack {
             CLIENT_ID: cognito.userPoolClient.id,
           },
         },
+        timeout: 15,
       },
       "VITE_SIGNIN_LAMBDA"
     );
@@ -253,6 +254,7 @@ class ServerlessProjectStack extends TerraformStack {
             CLIENT_ID: cognito.userPoolClient.id,
           },
         },
+        timeout: 15,
       },
       "VITE_SIGNUP_LAMBDA"
     );
@@ -263,10 +265,10 @@ class ServerlessProjectStack extends TerraformStack {
       {
         environment: {
           variables: {
-            SQS_QUEUE_URL:
-              lambdaMappings["reserve-room-notification"].url.functionUrl,
+            SQS_QUEUE_URL: bookingNotificationQueue.url,
           },
         },
+        timeout: 15,
       },
       "VITE_RESERVE_ROOM_LAMBDA"
     );
