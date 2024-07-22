@@ -1,6 +1,7 @@
 import json
 import boto3
 import logging
+import os
 
 sns_client = boto3.client('sns')
 
