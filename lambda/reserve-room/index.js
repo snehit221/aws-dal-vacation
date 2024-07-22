@@ -71,7 +71,11 @@ exports.handler = async (event) => {
       }),
     });
 
-    await sqsClient.send(command);
+    try {
+      await sqsClient.send(command);
+    } catch (e) {
+      console.log("SQS ERROR ", e);
+    }
 
     // Return the generated reference code
     return {
@@ -91,7 +95,11 @@ exports.handler = async (event) => {
       }),
     });
 
-    await client.send(command);
+    try {
+      await sqsClient.send(command);
+    } catch (e) {
+      console.log("SQS ERROR ", e);
+    }
     console.error(error);
     return {
       statusCode: 500,

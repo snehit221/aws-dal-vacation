@@ -79,15 +79,18 @@ export const handler = async (event) => {
     await ddbDocClient.send(DBcommand);
     // let response = await client.send(command);
 
-    //SNS TOPIC Subscription flow for Notifications
-    const response = await axios.post(
-      process.env.SIGNUP_NOTIFICATION_LAMBDA_URL,
-      {
-        email: email,
-      }
-    );
-
-    console.log("SNS TOPIC  RESP SIGNUP**** " + response.data);
+    try {
+      //SNS TOPIC Subscription flow for Notifications
+      const response = await axios.post(
+        process.env.SIGNUP_NOTIFICATION_LAMBDA_URL,
+        {
+          email: email,
+        }
+      );
+      console.log("SNS TOPIC  RESP SIGNUP**** " + response.data);
+    } catch (e) {
+      console.log("SIGNUP NOTIFICATION ERROR ", e);
+    }
 
     // response = await axios.post(lambdas.storeUserData, {
     //   username,

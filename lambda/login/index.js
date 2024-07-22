@@ -56,14 +56,17 @@ export const handler = async (event) => {
 
     const payload = await verifier.verify(token);
 
-    const apiResponse = await axios.post(
-      process.env.LOGIN_NOTIFICATION_LAMBDA_URL,
-      {
-        email: payload.email,
-      }
-    );
-
-    console.log("API CALL RESPONSE LOGIN**** " + apiResponse.data);
+    try {
+      const apiResponse = await axios.post(
+        process.env.LOGIN_NOTIFICATION_LAMBDA_URL,
+        {
+          email: payload.email,
+        }
+      );
+      console.log("API CALL RESPONSE LOGIN**** " + apiResponse.data);
+    } catch (e) {
+      console.log("LOGIN NOTIFICATION ERROR: ", e);
+    }
 
     return {
       statusCode: 200,
