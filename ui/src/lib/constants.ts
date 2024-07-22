@@ -19,4 +19,5 @@ export const lambdas = {
   storeSecurityKey: import.meta.env.VITE_STORE_KEY,
   decryptCipher: import.meta.env.VITE_DECRYPT_CIPHER,
   raiseConcern: import.meta.env.VITE_RAISE_CONCERN,
+  sentimentAnalysis: import.meta.env.VITE_SENTIMENT_ANALYSIS,
 };

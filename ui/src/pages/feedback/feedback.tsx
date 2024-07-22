@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./feedback.css";
 import { useNavigate } from "react-router-dom";
+import { lambdas } from "../../lib/constants";
 
 interface FeedbackItem {
   email: string;
@@ -21,9 +22,7 @@ function Feedback() {
 
   useEffect(() => {
     axios
-      .get(
-        "https://w4pkjn6nhkwzqeedhvaavdyazu0taujl.lambda-url.us-east-1.on.aws/"
-      )
+      .get(lambdas.sentimentAnalysis)
       .then((response) => {
         const data = response.data;
         if (Array.isArray(data)) {

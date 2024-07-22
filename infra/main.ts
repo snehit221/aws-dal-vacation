@@ -144,6 +144,7 @@ class ServerlessProjectStack extends TerraformStack {
       },
       {
         name: "sentiment-analysis",
+        frontendEnv: "VITE_SENTIMENT_ANALYSIS",
       },
       {
         name: "raise-concern",
