@@ -32,12 +32,11 @@ exports.handler = async (event) => {
     const fileName = `${roomId}/${result.files[0].filename}`;
 
     const s3Params = {
-      Bucket: "dalvacation-rooms-dal", // Replace with your S3 bucket name
+      Bucket: "dalvacation-rooms-dal",
       Key: fileName,
       Body: fileContent,
     };
 
-    // Upload file to S3 using Upload class
     const upload = new Upload({
       client: s3,
       params: s3Params,
@@ -45,10 +44,8 @@ exports.handler = async (event) => {
 
     await upload.done();
 
-    // Construct the file URL
     const fileUrl = `https://${s3Params.Bucket}.s3.amazonaws.com/${fileName}`;
 
-    // Update the room in DynamoDB with the file URL
     const updateParams = {
       TableName: "Rooms",
       Key: { id: roomId },
@@ -63,7 +60,6 @@ exports.handler = async (event) => {
       new UpdateCommand(updateParams)
     );
 
-    // Return the updated room
     return {
       statusCode: 200,
       headers: {

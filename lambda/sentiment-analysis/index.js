@@ -6,12 +6,10 @@ const {
 const { LanguageServiceClient } = require("@google-cloud/language");
 const googleCredentials = require("./csci-418118-bc809dee4a8a.json");
 
-// Initialize DynamoDB client
 const ddbClient = new DynamoDBClient();
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 const tableName = "Rooms";
 
-// Initialize Google Cloud Natural Language API client with credentials
 const gcpClient = new LanguageServiceClient({
   credentials: googleCredentials,
 });
@@ -45,7 +43,6 @@ const getAttitude = (score) => {
 
 exports.handler = async (event) => {
   try {
-    // Scan DynamoDB table
     const params = {
       TableName: tableName,
     };
@@ -54,8 +51,6 @@ exports.handler = async (event) => {
     const items = data.Items;
 
     console.log(items);
-
-    // Analyze sentiment for each comment
 
     const feedbackWithSentiment = [];
 

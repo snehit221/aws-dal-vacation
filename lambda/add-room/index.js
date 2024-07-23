@@ -19,26 +19,21 @@ exports.handler = async (event) => {
       };
     }
 
-    // Generate a unique ID for the room
     const id = uuidv4();
 
-    // Prepare the item to be inserted
     const newItem = {
       ...room,
-      amenities: new Set(room.amenities), // Assuming amenities is an array, convert to Set
+      amenities: new Set(room.amenities),
       id: id,
     };
 
-    // DynamoDB PutCommand parameters
     const params = {
       TableName: "Rooms",
       Item: newItem,
     };
 
-    // Add the room to DynamoDB
     await ddbDocClient.send(new PutCommand(params));
 
-    // Return the generated ID
     return {
       statusCode: 200,
       headers: {

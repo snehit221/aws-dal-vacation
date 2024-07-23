@@ -44,6 +44,8 @@ import { GoogleProvider } from "@cdktf/provider-google/lib/provider";
 import { LambdaEventSourceMapping } from "@cdktf/provider-aws/lib/lambda-event-source-mapping";
 import { SqsQueue } from "@cdktf/provider-aws/lib/sqs-queue";
 import { SnsTopic } from "@cdktf/provider-aws/lib/sns-topic";
+import { CloudRunV2Service } from "@cdktf/provider-google/lib/cloud-run-v2-service";
+import { CloudRunServiceIamBinding } from "@cdktf/provider-google/lib/cloud-run-service-iam-binding";
 
 class ServerlessProjectStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -52,6 +54,33 @@ class ServerlessProjectStack extends TerraformStack {
     new GoogleProvider(this, "gcp", {
       project: "serverless-lab-2-mayur",
       billingProject: "serverless-lab-2-mayur",
+    });
+
+    const cloudRun = new CloudRunV2Service(this, "cloud-run-deployment", {
+      name: "serverless-web",
+      location: "us-central1",
+      ingress: "INGRESS_TRAFFIC_ALL",
+      template: {
+        containers: [
+          {
+            image: "mayursiinh/serverless-web-app",
+            ports: {
+              containerPort: 80,
+            },
+          },
+        ],
+      },
+    });
+
+    new CloudRunServiceIamBinding(this, "unauth-iam", {
+      location: cloudRun.location,
+      service: cloudRun.name,
+      role: "roles/run.invoker",
+      members: ["allUsers"],
+    });
+
+    new TerraformOutput(this, "cloud-run-url", {
+      value: cloudRun.uri,
     });
 
     // define resources here
