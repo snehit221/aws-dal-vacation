@@ -2,7 +2,7 @@ import json
 import boto3
 import os
 
-# Initialize SNS client
+# Initialize SNS client for booking notification flow with SQS and SNS
 sns_client = boto3.client('sns')
 
 def lambda_handler(event, context):
